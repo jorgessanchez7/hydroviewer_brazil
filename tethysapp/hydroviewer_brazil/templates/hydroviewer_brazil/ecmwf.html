@@ -1,0 +1,428 @@
+{% extends base_name|add:"/base.html" %}
+{% load staticfiles %}
+{% load tethys_gizmos %}
+
+{% block import_gizmos %}
+    {% import_gizmo_dependency plotly_view %}
+{% endblock %}
+
+
+{% block styles %}
+  {{ block.super }}
+  <link href="{% static 'hydroviewer_brazil/css/map.css' %}" rel="stylesheet"/>
+  <link href="{% static 'hydroviewer_brazil/css/toggle-switchy.css' %}" rel="stylesheet"/>
+{% endblock %}
+
+{% block scripts %}
+  {{ block.super }}
+  <script src="{% static 'hydroviewer_brazil/js/map.js' %}" type="text/javascript"></script>
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+{% endblock %}
+
+{% block app_content %}
+  <div id="map" class="map">
+      <div id="map-view-options" class="map-view-options">
+        <div class="map-view-option" data-toggle="modal" data-target="#warning">
+          <div class="map-view-option-label">Forecast</div>
+          <div class="map-view-option-icon-wrapper">
+            <svg class="map-view-option-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Pro 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. --><path d="M256 32c14.2 0 27.3 7.5 34.5 19.8l216 368c7.3 12.4 7.3 27.7 .2 40.1S486.3 480 472 480H40c-14.3 0-27.6-7.7-34.7-20.1s-7-27.8 .2-40.1l216-368C228.7 39.5 241.8 32 256 32zm0 128c-13.3 0-24 10.7-24 24V296c0 13.3 10.7 24 24 24s24-10.7 24-24V184c0-13.3-10.7-24-24-24zm32 224c0-17.7-14.3-32-32-32s-32 14.3-32 32s14.3 32 32 32s32-14.3 32-32z"/></svg>
+          </div>
+        </div>
+        <div class="map-view-option" data-toggle="modal" data-target="#hydrology">
+          <div class="map-view-option-label">Hydrology</div>
+          <div class="map-view-option-icon-wrapper">
+            <svg class="map-view-option-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Pro 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. --><path d="M269.5 69.9c11.1-7.9 25.9-7.9 37 0C329 85.4 356.5 96 384 96c26.9 0 55.4-10.8 77.4-26.1l0 0c11.9-8.5 28.1-7.8 39.2 1.7c14.4 11.9 32.5 21 50.6 25.2c17.2 4 27.9 21.2 23.9 38.4s-21.2 27.9-38.4 23.9c-24.5-5.7-44.9-16.5-58.2-25C449.5 149.7 417 160 384 160c-31.9 0-60.6-9.9-80.4-18.9c-5.8-2.7-11.1-5.3-15.6-7.7c-4.5 2.4-9.7 5.1-15.6 7.7c-19.8 9-48.5 18.9-80.4 18.9c-33 0-65.5-10.3-94.5-25.8c-13.4 8.4-33.7 19.3-58.2 25c-17.2 4-34.4-6.7-38.4-23.9s6.7-34.4 23.9-38.4C42.8 92.6 61 83.5 75.3 71.6c11.1-9.5 27.3-10.1 39.2-1.7l0 0C136.7 85.2 165.1 96 192 96c27.5 0 55-10.6 77.5-26.1zm37 288C329 373.4 356.5 384 384 384c26.9 0 55.4-10.8 77.4-26.1l0 0c11.9-8.5 28.1-7.8 39.2 1.7c14.4 11.9 32.5 21 50.6 25.2c17.2 4 27.9 21.2 23.9 38.4s-21.2 27.9-38.4 23.9c-24.5-5.7-44.9-16.5-58.2-25C449.5 437.7 417 448 384 448c-31.9 0-60.6-9.9-80.4-18.9c-5.8-2.7-11.1-5.3-15.6-7.7c-4.5 2.4-9.7 5.1-15.6 7.7c-19.8 9-48.5 18.9-80.4 18.9c-33 0-65.5-10.3-94.5-25.8c-13.4 8.4-33.7 19.3-58.2 25c-17.2 4-34.4-6.7-38.4-23.9s6.7-34.4 23.9-38.4c18.1-4.2 36.2-13.3 50.6-25.2c11.1-9.4 27.3-10.1 39.2-1.7l0 0C136.7 373.2 165.1 384 192 384c27.5 0 55-10.6 77.5-26.1c11.1-7.9 25.9-7.9 37 0zm0-144C329 229.4 356.5 240 384 240c26.9 0 55.4-10.8 77.4-26.1l0 0c11.9-8.5 28.1-7.8 39.2 1.7c14.4 11.9 32.5 21 50.6 25.2c17.2 4 27.9 21.2 23.9 38.4s-21.2 27.9-38.4 23.9c-24.5-5.7-44.9-16.5-58.2-25C449.5 293.7 417 304 384 304c-31.9 0-60.6-9.9-80.4-18.9c-5.8-2.7-11.1-5.3-15.6-7.7c-4.5 2.4-9.7 5.1-15.6 7.7c-19.8 9-48.5 18.9-80.4 18.9c-33 0-65.5-10.3-94.5-25.8c-13.4 8.4-33.7 19.3-58.2 25c-17.2 4-34.4-6.7-38.4-23.9s6.7-34.4 23.9-38.4c18.1-4.2 36.2-13.3 50.6-25.2c11.1-9.5 27.3-10.1 39.2-1.7l0 0C136.7 229.2 165.1 240 192 240c27.5 0 55-10.6 77.5-26.1c11.1-7.9 25.9-7.9 37 0z"/></svg>  
+          </div>
+        </div>
+        <div class="map-view-option" data-toggle="modal" data-target="#region">
+          <div class="map-view-option-label">Region</div>
+          <div class="map-view-option-icon-wrapper">
+            <svg class="map-view-option-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Pro 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. --><path d="M57.7 193l9.4 16.4c8.3 14.5 21.9 25.2 38 29.8L163 255.7c17.2 4.9 29 20.6 29 38.5v39.9c0 11 6.2 21 16 25.9s16 14.9 16 25.9v39c0 15.6 14.9 26.9 29.9 22.6c16.1-4.6 28.6-17.5 32.7-33.8l2.8-11.2c4.2-16.9 15.2-31.4 30.3-40l8.1-4.6c15-8.5 24.2-24.5 24.2-41.7v-8.3c0-12.7-5.1-24.9-14.1-33.9l-3.9-3.9c-9-9-21.2-14.1-33.9-14.1H257c-11.1 0-22.1-2.9-31.8-8.4l-34.5-19.7c-4.3-2.5-7.6-6.5-9.2-11.2c-3.2-9.6 1.1-20 10.2-24.5l5.9-3c6.6-3.3 14.3-3.9 21.3-1.5l23.2 7.7c8.2 2.7 17.2-.4 21.9-7.5c4.7-7 4.2-16.3-1.2-22.8l-13.6-16.3c-10-12-9.9-29.5 .3-41.3l15.7-18.3c8.8-10.3 10.2-25 3.5-36.7l-2.4-4.2c-3.5-.2-6.9-.3-10.4-.3C163.1 48 84.4 108.9 57.7 193zM464 256c0-36.8-9.6-71.4-26.4-101.5L412 164.8c-15.7 6.3-23.8 23.8-18.5 39.8l16.9 50.7c3.5 10.4 12 18.3 22.6 20.9l29.1 7.3c1.2-9 1.8-18.2 1.8-27.5zm48 0c0 141.4-114.6 256-256 256S0 397.4 0 256S114.6 0 256 0S512 114.6 512 256z"/></svg>  
+          </div>
+        </div>
+    </div>
+  </div>
+  <img id="featureLoader" style="display: none; position:fixed; z-index: 100; left : 0; bottom : 0; right : 0; top : 0; margin:auto;" src="{% static base_name|add:'/images/loader2.gif' %}">
+{% endblock %}
+
+{% block header_buttons %}
+  {% if zoom_info %}
+  <div class="hidden" style="margin-right: 15px;">
+    {% gizmo text_input zoom_info %}
+  </div>
+  {% endif %}
+  {% if geoserver_endpoint %}
+  <div class="hidden" style="margin-right: 15px;">
+    {% gizmo text_input geoserver_endpoint %}
+  </div>
+  {% endif %}
+  {% if model_input %}
+    <div id="modelSelect" style="margin-right: 15px;">
+      {% gizmo select_input model_input %}
+    </div>
+  {% endif %}
+  {% if watershed_select %}
+    <div id="watershedSelect" style="margin-right: 15px;">
+      {% gizmo select_input watershed_select %}
+    </div>
+  {% endif %}
+
+  {% if defaultUpdateButton %}
+  <div id="defaultModelContainer" style="margin-right: 15px;">
+    {% gizmo defaultUpdateButton %}
+  </div>
+  {% endif %}
+  <div class="header-button glyphicon-button" data-toggle="tooltip" data-placement="bottom" title="View Graph">
+    <a data-toggle="modal" data-target="#graph"><span class="glyphicon glyphicon-globe"></span></a>
+  </div>
+
+  <div class="header-button glyphicon-button" data-toggle="tooltip" data-placement="bottom" title="View Table of Contents">
+    <a data-toggle="modal" data-target="#toc_modal"><span class="glyphicon glyphicon-list-alt"></span></a>
+  </div>
+
+  <div class="header-button glyphicon-button" data-toggle="tooltip" data-placement="bottom" title="About">
+    <a data-toggle="modal" data-target="#about"><span class="glyphicon glyphicon-info-sign"></span></a>
+  </div>
+{% endblock %}
+
+{% block after_app_content %}
+<!----Observed Data ----->
+<div class="modal fade" id="obsgraph" tabindex="-1" role="dialog" aria-labelledby="about-modal-label">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <div class="row">
+                    <div id="station-info" class="col-md-8"></div>
+                    <div class="col-md-4">
+                        <div align="right">
+                          <img class="obslogos" src="{% static base_name|add:'/images/byu_logo.png' %}">
+                          <img class="obslogos" src="{% static base_name|add:'/images/ANA_Logo.jpeg' %}">
+                          <img class="obslogos" src="{% static base_name|add:'/images/logo_cemaden.jpg' %}">
+                          <img class="obslogos" src="{% static base_name|add:'/images/Servir_logo.jpeg' %}">
+                        </div>
+                    </div>
+                </div>
+                <div id="obsdates">
+                    <div id="startdatepicker">
+                        <!--{% gizmo startdateobs %}-->
+                    </div>
+                    <div id="enddatepicker">
+                        <!--{% gizmo enddateobs %}-->
+                    </div>
+                </div>
+                <div id="interaction"></div>
+            </div>
+            <div class="modal-body">
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs" role="tablist">
+                  <li role="presentation" class="active"><a id="observedQ_tab_link" href="#observedQ" aria-controls="observedQ" role="tab" data-toggle="tab">Observed Discharge</a></li>
+                  <li role="presentation"><a id="observedWL_tab_link" href="#observedWL" aria-controls="observedWL" role="tab" data-toggle="tab">Observed Water Level</a></li>
+                  <li role="presentation"><a href="#download_data" aria-controls="download_data" role="tab" data-toggle="tab">Download</a></li>
+                </ul>
+
+                <!-- Tab panes -->
+                <div class="tab-content">
+                    <div role="tabpanel" class="tab-pane active" id="observedQ">
+                        <div class="panel panel-default">
+                            <div class="panel-body">
+                                <div class="flex-container-row"><img id="observed-loading-Q" class="view-file hidden" src="{% static base_name|add:'/images/loader.gif' %}" /></div>
+                                <div id="observed-chart-Q"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="observedWL"> <!-- /.tab-pane -->
+                        <div class="panel panel-default">
+                            <div class="panel-body">
+                                <div class="flex-container-row"><img id="observed-loading-WL" class="view-file hidden" src="{% static base_name|add:'/images/loader.gif' %}" /></div>
+                                <div id="observed-chart-WL"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="download_data">
+                        <div class="panel panel-default">
+                            <div class="panel-body">
+                                <h6>Download Observed Discharge Data</h6>
+                                <div id="download_observed_discharge" class="btn-group hidden long-term-select" role="group">
+                                    <a class="btn btn-success" role="button" id="submit-download-observed-discharge">
+                                        <span class="glyphicon glyphicon-play"></span> Download Observed Discharge
+                                    </a>
+                                </div>
+                                <h6>Download Observed Water Level Data</h6>
+                                <div id="download_observed_waterlevel" class="btn-group hidden long-term-select" role="group">
+                                    <a class="btn btn-success" role="button" id="submit-download-observed-waterlevel">
+                                        <span class="glyphicon glyphicon-play"></span> Download Observed Water Level
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <div id="info" class="hidden"></div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart Modal -->
+<div class="modal fade" id="graph" tabindex="-1" role="dialog" aria-labelledby="about-modal-label">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <div class="row">
+          <div id="watershed-info" class="col-md-8"></div>
+          <div class="col-md-4">
+            <div align="right">
+              <img class="logos" src="{% static base_name|add:'/images/byu_logo.png' %}">
+              <img class="logos" src="{% static base_name|add:'/images/glofas_logo.png' %}">
+              <img class="logos" src="{% static base_name|add:'/images/copernicus_logo.png' %}">
+            </div>
+          </div>
+        </div>
+        <div id="interaction"></div>
+      </div>
+      <div class="modal-body">
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs" role="tablist">
+          <li role="presentation" class="active"><a id="forecast_tab_link" href="#forecast_tab" aria-controls="forecast_tab" role="tab" data-toggle="tab">Forecast</a></li>
+          <li role="presentation"><a id="historical_tab_link" href="#historical" aria-controls="historical" role="tab" data-toggle="tab">Historical Simulation</a></li>
+          <li role="presentation"><a id="flow_duration_tab_link" href="#flow_duration" aria-controls="flow_duration" role="tab" data-toggle="tab">Historical Simulation Statistics</a></li>
+          <li role="presentation"><a href="#download" aria-controls="download" role="tab" data-toggle="tab">Download</a></li>
+        </ul>
+
+        <!-- Tab panes -->
+        <div class="tab-content">
+          <div role="tabpanel" class="tab-pane active" id="forecast_tab">
+            <div class="panel panel-default">
+              <div class="panel-body">
+                <div id="dates" class="hidden form-group" style="padding: 30px 30px 20px 0">
+                  <!-- <select id="datesSelect" class="form-control"></select> -->
+                  {% gizmo date_picker %}
+                </div>
+                <div class="flex-container-row"><img id="view-file-loading" class="view-file hidden" src="{% static base_name|add:'/images/loader.gif' %}" /></div>
+                <div id="long-term-chart"></div>
+                <div class="forecast-table" id="forecast-table" style="display:none">
+                    <div id="table">{# The table of forecast go here #}</div>
+                </div>
+              </div>
+            </div>
+          </div> <!-- /.tab-pane -->
+          <div role="tabpanel" class="tab-pane" id="historical">
+            <div class="panel panel-default">
+              <div class="flex-container-row"><img id="his-view-file-loading" class="view-file hidden" src="{% static base_name|add:'/images/loader.gif' %}" /></div>
+              <div id="historical-chart" class="panel-body"></div>
+            </div>
+          </div><!-- /.tab-pane -->
+          <div role="tabpanel" class="tab-pane" id="flow_duration">
+            <div class="panel panel-default">
+              <div class="flex-container-row"><img id="fdc-view-file-loading" class="view-file hidden" src="{% static base_name|add:'/images/loader.gif' %}" /></div>
+              <div id='fdc-chart' class="panel-body"></div>
+              <div class="flex-container-row"><img id="seasonal_d-view-file-loading" class="view-file hidden" src="{% static base_name|add:'/images/loader.gif' %}" /></div>
+              <div id='seasonal_d-chart' class="panel-body"></div>
+              <div class="flex-container-row"><img id="seasonal_m-view-file-loading" class="view-file hidden" src="{% static base_name|add:'/images/loader.gif' %}" /></div>
+              <div id='seasonal_m-chart' class="panel-body"></div>
+            </div>
+          </div><!-- /.tab-pane -->
+          <div role="tabpanel" class="tab-pane" id="download">
+            <div class="panel panel-default">
+              <div class="panel-body">
+                <h6>Download Forecast Data</h6>
+                <div id="download_forecast" class="btn-group hidden long-term-select" role="group">
+                  <a class="btn btn-success" role="button" id="submit-download-forecast">
+                    <span class="glyphicon glyphicon-play"></span> Download Forecast
+                  </a>
+                </div>
+                <h6>Download ERA 5 Data</h6>
+                <div id="download_era_5" class="btn-group hidden" role="group">
+                  <a class="btn btn-info" role="button" id="submit-download-5-csv">
+                    <span class="glyphicon glyphicon-play"></span> Download ERA 5 Data
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="info" class="hidden"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- About Modal -->
+<div class="modal fade" id="about" tabindex="-1" role="dialog" aria-labelledby="about-modal-label">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h2 class="modal-title" id="about-modal-label">About HydroViewer</h2>
+      </div>
+      <div class="modal-body">
+        <p id="overview"><b>
+          This web application was created to allow users to visualize hydrologic model results
+          from different sources. It currently displays GloFAS and LDAS model results.
+        </b></p>
+        <h3>How it works</h3>
+        <h6>1. Click on Get Started.</h6>
+        <h6>2. Select a hydrologic model and a corresponding watershed of interest.</h6>
+        <h6>3. Once you click select a watershed, the map will automatically zoom to that specific watershed.</h6>
+        <h6>4. Click on any of the stream reaches within the watershed.</h6>
+        <h6>6. A hydrograph for the selected reach with the most current streamflow result will be displayed
+          in the graph area next to the map.</h6>
+        <h6>7. If previous dates are available, the Select Date dropdown will be displayed on top of the graph.
+          Select any of the available dates to display the forecast for that specific date in the graph.</h6>
+        <h6>8. Click the close button to exit the application.</h6>
+
+        <h5>Additional Resources:</h5>
+        <p><a href="https://www.ecmwf.int/en/about/what-we-do/global-forecasts" target="_blank">ECMWF Global Forecasts</a></p>
+        <p><a href="http://rapid-hub.org/" target="_blank">RAPID River Routing Model</a></p>
+        <p><a href="https://streamflow-prediction-tool.readthedocs.io/en/latest/" target="_blank">StreamFlow Prediction Tool</a></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Warnings Modal -->
+<div class="modal fade" id="warning" tabindex="-1" role="dialog" aria-labelledby="about-modal-label">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h2 class="modal-title" id="about-modal-label">Warnings</h2>
+      </div>
+      <div class="modal-body">
+        <div id="wmslegend0" hidden>
+            <img src="http://128.187.106.130:80/glofas-proxy/glofas-ows-prod/?version=1.3.0&amp;service=WMS&amp;request=GetLegendGraphic&amp;sld_version=1.1.0&amp;layer=AccRainEGE&amp;format=image/png&amp;STYLE=default"/>
+        </div>
+        <div id="wmslegend1" hidden>
+            <img src="http://128.187.106.130:80/glofas-proxy/glofas-ows-prod/?version=1.3.0&amp;service=WMS&amp;request=GetLegendGraphic&amp;sld_version=1.1.0&amp;layer=EGE_probRgt50&amp;format=image/png&amp;STYLE=default"/>
+        </div>
+        <div id="wmslegend2" hidden>
+            <img src="http://128.187.106.130:80/glofas-proxy/glofas-ows-prod/?version=1.3.0&amp;service=WMS&amp;request=GetLegendGraphic&amp;sld_version=1.1.0&amp;layer=EGE_probRgt150&amp;format=image/png&amp;STYLE=default"/>
+        </div>
+        <div id="wmslegend3" hidden>
+            <img src="http://128.187.106.130:80/glofas-proxy/glofas-ows-prod/?version=1.3.0&amp;service=WMS&amp;request=GetLegendGraphic&amp;sld_version=1.1.0&amp;layer=EGE_probRgt300&amp;format=image/png&amp;STYLE=default"/>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hydrology Modal -->
+<div class="modal fade" id="hydrology" tabindex="-1" role="dialog" aria-labelledby="about-modal-label">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h2 class="modal-title" id="about-modal-label">Hydrology</h2>
+      </div>
+      <div class="modal-body">
+        <!-- Content create by JS -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Region Modal -->
+<div class="modal fade" id="region" tabindex="-1" role="dialog" aria-labelledby="about-modal-label">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h2 class="modal-title" id="about-modal-label">Region</h2>
+      </div>
+      <div class="modal-body">
+        <!-- Content create by JS -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Layers Modal -->
+<div class="layers-panel" id="layers-panel" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="about-modal-label">Layers</h2>
+      </div>
+      <div class="modal-body">
+        <div id="layers-panel-empty">
+          No layers
+        </div>
+
+        <div id="observed-layers"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Table of Contents Modal -->
+<div id="toc_modal" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Table of Contents</h4>
+      </div>
+      <div class="modal-body tree">
+        <!-- List group -->
+        <ul class="list-group">
+          <li class="list-group-item">
+            Accumulated Rainfall
+            <div class="pull-right">
+              <input id="wmsToggle0" name="AccRainEGE" type="checkbox" onclick="toggleAcc(0);"/>
+              <label for="AccRainEGE" class="label-default"></label>
+            </div>
+          </li>
+          <li class="list-group-item">
+            Rainfall Probability > 50mm
+            <div class="pull-right">
+              <input id="wmsToggle1" name="EGE_probRgt50" type="checkbox" onclick="toggleAcc(1);"/>
+              <label for="EGE_probRgt50" class="label-default"></label>
+            </div>
+          </li>
+          <li class="list-group-item">
+            Rainfall Probability > 150mm
+            <div class="pull-right">
+              <input id="wmsToggle2" name="EGE_probRgt150" type="checkbox" onclick="toggleAcc(2);"/>
+              <label for="EGE_probRgt150" class="label-default"></label>
+            </div>
+          </li>
+          <li class="list-group-item">
+            Rainfall Probability > 300mm
+            <div class="pull-right">
+              <input id="wmsToggle3" name="EGE_probRgt300" type="checkbox" onclick="toggleAcc(3);"/>
+              <label for="EGE_probRgt300" class="label-default"></label>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+{% endblock %}
+
+{% block app_actions %}
+
+{% endblock %}

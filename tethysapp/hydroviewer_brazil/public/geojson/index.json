@@ -1,0 +1,110 @@
+{
+  "brazil": {
+    "name": "Brazil",
+    "geojsons": ["Brazil.json"]
+  },
+  "acre": {
+    "name": "Acre",
+    "geojsons": ["ACRE.json"]
+  },
+  "amapa": {
+    "name": "Amapa",
+    "geojsons": ["AMAPA.json"]
+  },
+  "amazonas": {
+    "name": "Amazonas",
+    "geojsons": ["AMAZONAS.json"]
+  },
+  "bahia": {
+    "name": "Bahia",
+    "geojsons": ["BAHIA.json"]
+  },
+  "ceara": {
+    "name": "Ceara",
+    "geojsons": ["CEARA.json"]
+  },
+  "distrito_federal": {
+    "name": "Distrito Federal",
+    "geojsons": ["DISTRITO_FEDERAL.json"]
+  },
+  "espirito_santo": {
+    "name": "Espirito Santo",
+    "geojsons": ["ESPIRITO_SANTO.json"]
+  },
+  "goias": {
+    "name": "Goias",
+    "geojsons": ["GOIAS.json"]
+  },
+  "maranhao": {
+    "name": "Maranhao",
+    "geojsons": ["MARANHAO.json"]
+  },
+  "mato_grosso": {
+    "name": "Mato Grosso",
+    "geojsons": ["MATO_GROSSO.json"]
+  },
+  "mato_grosso_do_sul": {
+    "name": "Mato Grosso do Sul",
+    "geojsons": ["MATO_GROSSO_DO_SUL.json"]
+  },
+  "minas_gerais": {
+    "name": "Minas Gerais",
+    "geojsons": ["MINAS_GERAIS.json"]
+  },
+  "para": {
+    "name": "Para",
+    "geojsons": ["PARA.json"]
+  },
+  "paraiba": {
+    "name": "Paraiba",
+    "geojsons": ["PARAIBA.json"]
+  },
+  "parana": {
+    "name": "Parana",
+    "geojsons": ["PARANA.json"]
+  },
+  "pernambuco": {
+    "name": "Pernambuco",
+    "geojsons": ["PERNAMBUCO.json"]
+  },
+  "piaui": {
+    "name": "Piaui",
+    "geojsons": ["PIAUI.json"]
+  },
+  "rio_de_janeiro": {
+    "name": "Rio de Janeiro",
+    "geojsons": ["RIO_DE_JANEIRO.json"]
+  },
+  "rio_grande_do_norte": {
+    "name": "Rio Grande do Norte",
+    "geojsons": ["RIO_GRANDE_DO_NORTE.json"]
+  },
+  "rio_grande_do_sul": {
+    "name": "Rio Grande do Sul",
+    "geojsons": ["RIO_GRANDE_DO_SUL.json"]
+  },
+  "rondonia": {
+    "name": "Rondonia",
+    "geojsons": ["RONDONIA.json"]
+  },
+  "roraima": {
+    "name": "Roraima",
+    "geojsons": ["RORAIMA.json"]
+  },
+  "santa_catarina": {
+    "name": "Santa Catarina",
+    "geojsons": ["SANTA_CATARINA.json"]
+  },
+  "sao_paulo": {
+    "name": "Sao Paulo",
+    "geojsons": ["SAO_PAULO.json"]
+  },
+  "sergipe": {
+    "name": "Sergipe",
+    "geojsons": ["SERGIPE.json"]
+  },
+  "tocantins": {
+    "name": "Tocantins",
+    "geojsons": ["TOCANTINS.json"]
+  }
+}

@@ -1,0 +1,240 @@
+.map-view-options {
+  position: absolute;
+  bottom: 80px;
+  right: 0px;
+  max-height: 90%;
+  overflow-y: auto;
+  margin: 5px;
+  color: white;
+  z-index: 999;
+  display: flex;
+  gap: 12px;
+  padding: 10px;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.map-view-options .map-view-option {
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  gap: 12px;
+  cursor: pointer;
+  filter: drop-shadow(3px 3px 3px #333)
+}
+
+.map-view-options .map-view-option:hover {
+  opacity: 0.8;
+}
+
+.map-view-options .map-view-option .map-view-option-label {
+  background-color: black;
+  padding: 1px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.map-view-options .map-view-option .map-view-option-icon-wrapper {
+  height: 40px;
+  min-height: 40px;
+  width: 40px;
+  min-width: 40px;
+  background-color: white;
+  border-radius: 50%;
+}
+
+.map-view-options .map-view-option .map-view-option-icon {
+  margin: 10px;
+}
+
+.common-option-wrapper {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+}
+
+.common-option-label {
+  display: flex;
+  gap: 4px;
+}
+
+/* Warning*/
+#warning .modal-dialog {
+  width: 300px;
+  margin-right: 8px;
+}
+
+#warning .modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#warning .warning-option-wrapper {
+  display: flex;
+  justify-content: space-between;
+}
+
+#warning .warning-option-label {
+  display: flex;
+  gap: 4px;
+}
+
+#region .region-option-wrapper {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+}
+
+#region .region-option-label {
+  display: flex;
+  gap: 4px;
+}
+
+#region .modal-dialog {
+  width: 300px;
+  margin-right: 8px;
+}
+
+#region .region-toggle {
+  fill: #777;
+  cursor: pointer;
+}
+
+#region .region-toggle svg {
+  height: 20px;
+  width: 20px;
+}
+
+#hydrology .hydrology-option-wrapper {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+}
+
+#hydrology .hydrology-option-label {
+  display: flex;
+  gap: 4px;
+}
+
+#hydrology .modal-dialog {
+  width: 300px;
+  margin-right: 8px;
+}
+
+.collapsible {
+  background-color: #eee;
+  color: #444;
+  cursor: pointer;
+  padding: 18px;
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+}
+
+/* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+.active, .collapsible:hover {
+  background-color: #ccc;
+}
+
+/* Style the collapsible content. Note: hidden by default */
+.collapsible-content {
+  padding: 0 18px;
+  max-height: 0;
+  overflow: hidden;
+  background-color: #f1f1f1;
+  transition: max-height 0.2s ease-out;
+}
+
+.layers-panel {
+  position: absolute;
+  left: 8px;
+  top: 64px;
+  width: 300px;
+  height: 400px;
+}
+
+.layers-panel .modal-dialog {
+  width: 100%;
+}
+
+#layers-panel-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ccc;
+  font-style: italic;
+  padding: 8px;
+}
+
+#layers-panel-empty.invisible {
+  display: none;
+}
+
+#observed-layers {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+#observed-layers .observed-layer-wrapper {
+  display: flex;
+  justify-content: space-between;
+}
+
+#observed-layers .observed-layer-wrapper .observed-layer-title {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+#observed-layers .observed-layer-wrapper .observed-layer-controls .observed-layer-control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  fill: #BBB;
+}
+
+#observed-layers .observed-layer-wrapper .observed-layer-controls .observed-layer-control:hover {
+  fill: #777;
+  cursor: pointer;
+}
+
+#observed-layers .observed-layer-wrapper .observed-layer-controls .observed-layer-control svg {
+  height: 20px;
+  width: 20px;
+}
+
+#observed-layers .observed-layer-wrapper:first-child .move-up {
+  pointer-events: none;
+  fill: #DDD;
+}
+
+#observed-layers .observed-layer-wrapper:last-child .move-down {
+  pointer-events: none;
+  fill: #DDD;
+}
+
+#observed-layers .observed-layer-wrapper .observed-layer-controls {
+  display: flex;
+  gap: 4px;
+}
+
+.toggle-switchy > input:not(:checked) + .toggle {
+  background:#DDD !important;
+}
+
+.toggle-switchy > input:not(:checked) + .toggle > .switch {
+  border-color: #DDD !important ;
+}
+
+.toggle-switchy[data-size='sm'] > input + .toggle:before {
+  font-size:0.8rem !important;
+}
+
+.toggle-switchy[data-size='sm'] > input + .toggle:after {
+  font-size:0.8rem !important;
+  color: black;
+}

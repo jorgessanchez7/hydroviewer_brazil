@@ -1,0 +1,150 @@
+{% extends base_name|add:"/base.html" %}
+{% load staticfiles %}
+{% load tethys_gizmos %}
+
+{% block import_gizmos %}
+    {% import_gizmo_dependency plotly_view %}
+{% endblock %}
+
+{% block app_content %}
+  <div id="map" class="map">
+      <div id="map-view-legend" class="map-view-legend ol-unselectable ol-control">
+          <div>
+              <svg width="20" height="20" viewPort="0 0 20 20" version="1.1"
+                   xmlns="http://www.w3.org/2000/svg">
+                  <polyline points="19 1, 1 6, 19 14, 1 19" stroke="#0000FF" fill="transparent" stroke-width="2"/>
+              </svg>
+              Streams
+          </div>
+      </div>
+  </div>
+  <img id="featureLoader" style="display: none; position:fixed; z-index: 100; left : 0; bottom : 0; right : 0; top : 0; margin:auto;" src="{% static base_name|add:'/images/loader2.gif' %}">
+{% endblock %}
+
+{% block header_buttons %}
+  {% if zoom_info %}
+  <div class="hidden" style="margin-right: 15px;">
+    {% gizmo text_input zoom_info %}
+  </div>
+  {% endif %}
+  {% if geoserver_endpoint %}
+  <div class="hidden" style="margin-right: 15px;">
+    {% gizmo text_input geoserver_endpoint %}
+  </div>
+  {% endif %}
+  {% if model_input %}
+    <div id="modelSelect" style="margin-right: 15px;">
+      {% gizmo select_input model_input %}
+    </div>
+  {% endif %}
+  {% if watershed_select %}
+    <div id="watershedSelect" style="margin-right: 15px;">
+      {% gizmo select_input watershed_select %}
+    </div>
+  {% endif %}
+
+  <div class="header-button glyphicon-button" data-toggle="tooltip" data-placement="bottom" title="View Graph">
+    <a data-toggle="modal" data-target="#graph"><span class="glyphicon glyphicon-globe"></span></a>
+  </div>
+
+  <div class="header-button glyphicon-button" data-toggle="tooltip" data-placement="bottom" title="About">
+    <a data-toggle="modal" data-target="#about"><span class="glyphicon glyphicon-info-sign"></span></a>
+  </div>
+{% endblock %}
+
+{% block after_app_content %}
+<!-- Chart Modal -->
+<div class="modal fade" id="graph" tabindex="-1" role="dialog" aria-labelledby="about-modal-label">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <div class="row">
+          <div id="watershed-info" class="col-md-8"></div>
+          <div class="col-md-4">
+            <div align="right">
+              <img class="logos" src="{% static base_name|add:'/images/byu_logo.png' %}">
+              <img class="logos" src="{% static base_name|add:'/images/lis_logo.png' %}">
+              <img class="logos" src="{% static base_name|add:'/images/servir_logo.png' %}">
+            </div>
+          </div>
+        </div>
+        <div id="interaction"></div>
+      </div>
+      <div class="modal-body">
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs" role="tablist">
+          <li role="presentation" class="active"><a id="forecast_tab_link" href="#forecast_tab" aria-controls="forecast_tab" role="tab" data-toggle="tab">LDAS Time-Series</a></li>
+          <li role="presentation"><a href="#download" aria-controls="download" role="tab" data-toggle="tab">Download</a></li>
+        </ul>
+
+        <!-- Tab panes -->
+        <div class="tab-content">
+          <div role="tabpanel" class="tab-pane active" id="forecast_tab">
+            <div class="panel panel-default">
+              <div class="flex-container-row"><img id="his-view-file-loading" class="view-file hidden" src="{% static base_name|add:'/images/loader.gif' %}" /></div>
+              <div id="long-term-chart" class="panel-body"></div>
+            </div>
+          </div><!-- /.tab-pane -->
+          <div role="tabpanel" class="tab-pane" id="download">
+            <div class="panel panel-default">
+              <div class="panel-body">
+                <h6>Download LDAS Data</h6>
+                <div id="download_forecast" class="btn-group hidden long-term-select" role="group">
+                  <a class="btn btn-success" role="button" id="submit-download-forecast">
+                    <span class="glyphicon glyphicon-play"></span> Download LDAS
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="info" class="hidden"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- About Modal -->
+<div class="modal fade" id="about" tabindex="-1" role="dialog" aria-labelledby="about-modal-label">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h2 class="modal-title" id="about-modal-label">About HydroViewer</h2>
+      </div>
+      <div class="modal-body">
+        <p id="overview"><b>
+          This web application was created to allow users to visualize hydrologic model results
+          from different sources. It currently displays GloFAS and LDAS model results.
+        </b></p>
+        <h3>How it works</h3>
+        <h6>1. Click on Get Started.</h6>
+        <h6>2. Select a hydrologic model and a corresponding watershed of interest.</h6>
+        <h6>3. Once you click select a watershed, the map will automatically zoom to that specific watershed.</h6>
+        <h6>4. Click on any of the stream reaches within the watershed.</h6>
+        <h6>6. A hydrograph for the selected reach with the most current streamflow result will be displayed
+          in the graph area next to the map.</h6>
+        <h6>7. If previous dates are available, the Select Date dropdown will be displayed on top of the graph.
+          Select any of the available dates to display the forecast for that specific date in the graph.</h6>
+        <h6>8. Click the close button to exit the application.</h6>
+
+        <h5>Additional Resources:</h5>
+        <p><a href="https://www.ecmwf.int/en/about/what-we-do/global-forecasts" target="_blank">ECMWF Global Forecasts</a></p>
+        <p><a href="http://rapid-hub.org/" target="_blank">RAPID River Routing Model</a></p>
+        <p><a href="https://streamflow-prediction-tool.readthedocs.io/en/latest/" target="_blank">StreamFlow Prediction Tool</a></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block app_actions %}
+
+{% endblock %}

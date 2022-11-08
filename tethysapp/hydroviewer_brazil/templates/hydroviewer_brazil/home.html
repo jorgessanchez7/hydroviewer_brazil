@@ -1,0 +1,67 @@
+{% extends base_name|add:"/base.html" %}
+{% load tethys_gizmos %}
+{% block import_gizmos %}
+    {% import_gizmo_dependency plotly_view %}
+{% endblock %}
+
+{% block app_content %}
+<div id="map" class="map"></div>
+{% endblock %}
+
+{% block header_buttons %}
+  {% if zoom_info %}
+  <div class="hidden" style="margin-right: 15px;">
+    {% gizmo text_input zoom_info %}
+  </div>
+  {% endif %}
+  {% if model_input %}
+    <div id="modelSelect" style="margin-right: 15px;">
+      {% gizmo select_input model_input %}
+    </div>
+  {% endif %}
+
+  <div class="header-button glyphicon-button" data-toggle="tooltip" data-placement="bottom" title="About">
+    <a data-toggle="modal" data-target="#about"><span class="glyphicon glyphicon-info-sign"></span></a>
+  </div>
+{% endblock %}
+
+{# Use the after_app_content block for modals #}
+{% block after_app_content %}
+
+<!-- About Modal -->
+<div class="modal fade" id="about" tabindex="-1" role="dialog" aria-labelledby="about-modal-label">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h2 class="modal-title" id="about-modal-label">About HydroViewer</h2>
+            </div>
+            <div class="modal-body">
+                <p id="overview"><b>
+                    This web application was created to allow users to visualize hydrologic model results
+                    from different sources. It currently displays GloFAS and LDAS model results.
+                </b></p>
+                <h3>How it works</h3>
+                <h6>1. Click on Get Started.</h6>
+                <h6>2. Select a hydrologic model and a corresponding watershed of interest.</h6>
+                <h6>3. Once you click select a watershed, the map will automatically zoom to that specific watershed.</h6>
+                <h6>4. Click on any of the stream reaches within the watershed.</h6>
+                <h6>6. A hydrograph for the selected reach with the most current streamflow result will be displayed
+                    in the graph area next to the map.</h6>
+                <h6>7. If previous dates are available, the Select Date dropdown will be displayed on top of the graph.
+                    Select any of the available dates to display the forecast for that specific date in the graph.</h6>
+                <h6>8. Click the close button to exit the application.</h6>
+
+                <h5>Additional Resources:</h5>
+                <p><a href="https://www.ecmwf.int/en/about/what-we-do/global-forecasts" target="_blank">ECMWF Global Forecasts</a></p>
+                <p><a href="http://rapid-hub.org/" target="_blank">RAPID River Routing Model</a></p>
+                <p><a href="https://streamflow-prediction-tool.readthedocs.io/en/latest/" target="_blank">StreamFlow Prediction Tool</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block app_actions %}
+
+{% endblock %}

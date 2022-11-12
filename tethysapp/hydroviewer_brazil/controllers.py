@@ -7,7 +7,6 @@ from tethys_sdk.permissions import has_permission
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 
-
 import io
 import os
 import json
@@ -20,7 +19,6 @@ import numpy as np
 import pandas as pd
 import urllib.error
 import urllib.parse
-import netCDF4 as nc
 import datetime as dt
 import hydrostats.data
 import scipy.stats as sp

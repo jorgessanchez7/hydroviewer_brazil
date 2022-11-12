@@ -10,8 +10,6 @@ requirements:
     channels:
       - conda-forge
     packages:
-      - netCDF4
-      - gdal
       - geoglows
       - hydrostats
       - pandas

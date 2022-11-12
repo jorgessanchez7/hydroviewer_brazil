@@ -471,6 +471,9 @@ const featureStyle = (feature) => {
                     onRemove: () => layer.setVisible(false),
                     isOn: true,
                 });
+
+
+
             } else {
                 enableOvservedLayer(key);
                 onToggle(true, layer);

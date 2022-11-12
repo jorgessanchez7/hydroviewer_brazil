@@ -9,7 +9,7 @@ class Hydroviewer(TethysAppBase):
 
     name = 'HydroViewer Brazil'
     index = '{0}:home'.format(base_name)
-    icon = '{0}/images/brazil-icon.jpeg'.format(base_name)
+    icon = '{0}/images/hydroviewer_brazil_logo.jpg'.format(base_name)
     package = '{0}'.format(base_name)
     root_url = base_url
     color = '#009C3B'
@@ -44,13 +44,9 @@ class Hydroviewer(TethysAppBase):
                 url='ecmwf-rapid',
                 controller='{0}.controllers.ecmwf'.format(base_name)),
             UrlMap(
-                name='lis',
-                url='lis-rapid',
-                controller='{0}.controllers.lis'.format(base_name)),
-            UrlMap(
-                name='hiwat',
-                url='hiwat-rapid',
-                controller='{0}.controllers.hiwat'.format(base_name)),
+                name='get_popup_response',
+                url='get-request-data',
+                controller='{0}.controllers.get_popup_response'.format(base_name)),
             UrlMap(
                 name='get-available-dates',
                 url='get-available-dates',
@@ -100,6 +96,10 @@ class Hydroviewer(TethysAppBase):
                 url='get-forecast-data-csv',
                 controller='{0}.controllers.get_forecast_data_csv'.format(base_name)),
             UrlMap(
+                name='get_forecast_ens_data_csv',
+                url='get-forecast-ens-data-csv',
+                controller='{0}.controllers.get_forecast_ens_data_csv'.format(base_name)),
+            UrlMap(
                 name='get-historic-data',
                 url='ecmwf-rapid/get-historic-data',
                 controller='{0}.controllers.get_historic_data'.format(base_name)),
@@ -124,32 +124,12 @@ class Hydroviewer(TethysAppBase):
                 url='ecmwf-rapid/get-forecast-data-csv',
                 controller='{0}.controllers.get_forecast_data_csv'.format(base_name)),
             UrlMap(
-                name='get_lis_shp',
-                url='get-lis-shp',
-                controller='{0}.controllers.shp_to_geojson'.format(base_name)),
-            UrlMap(
-                name='get_lis_shp',
-                url='lis-rapid/get-lis-shp',
-                controller='{0}.controllers.shp_to_geojson'.format(base_name)),
-            UrlMap(
-                name='get_hiwat_shp',
-                url='get-hiwat-shp',
-                controller='{0}.controllers.shp_to_geojson'.format(base_name)),
-            UrlMap(
-                name='get_hiwat_shp',
-                url='hiwat-rapid/get-hiwat-shp',
-                controller='{0}.controllers.shp_to_geojson'.format(base_name)),
-            UrlMap(
                 name='set_def_ws',
                 url='admin/setdefault',
                 controller='{0}.controllers.setDefault'.format(base_name)),
             UrlMap(
                 name='set_def_ws',
                 url='ecmwf-rapid/admin/setdefault',
-                controller='{0}.controllers.setDefault'.format(base_name)),
-            UrlMap(
-                name='set_def_ws',
-                url='lis-rapid/admin/setdefault',
                 controller='{0}.controllers.setDefault'.format(base_name)),
             UrlMap(
                 name='forecastpercent',
@@ -194,23 +174,6 @@ class Hydroviewer(TethysAppBase):
         )
 
         return url_maps
-
-    # def permissions(self):
-    #
-    #     update_default = Permission(
-    #         name='update_default',
-    #         description='Update Default Settings'
-    #     )
-    #
-    #     admin = PermissionGroup(
-    #         name='admin',
-    #         permissions=(update_default,)
-    #     )
-    #
-    #
-    #     permissions = (admin,)
-    #
-    #     return permissions
 
     def custom_settings(self):
         return (
@@ -269,17 +232,5 @@ class Hydroviewer(TethysAppBase):
                 description='Hide Watershed Options when default present (True or False) ',
                 required=True,
                 value=True
-            ),
-            CustomSetting(
-                name='lis_path',
-                type=CustomSetting.TYPE_STRING,
-                description='Path to local LIS-RAPID directory',
-                required=False
-            ),
-            CustomSetting(
-                name='hiwat_path',
-                type=CustomSetting.TYPE_STRING,
-                description='Path to local HIWAT-RAPID directory',
-                required=False
             ),
         )

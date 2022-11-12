@@ -35,8 +35,12 @@
 {{ block.super }}
 <script>
     var staticGeoJSON = "{% static base_name|add:'/geojson/' %}";
+    var staticGeoJSON2 = "{% static base_name|add:'/geojson2/' %}";
+    var staticGeoJSON3 = "{% static base_name|add:'/geojson3/' %}";
 </script>
 <script src="{% static 'hydroviewer_brazil/js/regionsIndex.js' %}" type="text/javascript"></script>
+<script src="{% static 'hydroviewer_brazil/js/regionsIndex2.js' %}" type="text/javascript"></script>
+<script src="{% static 'hydroviewer_brazil/js/regionsIndex3.js' %}" type="text/javascript"></script>
 <script src="{% static 'hydroviewer_brazil/js/ottobaciasIndex.js' %}" type="text/javascript"></script>
 <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.20.1/ol.js" type="text/javascript"></script> -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/openlayers/3.20.1/ol.js" type="text/javascript"></script>

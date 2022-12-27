@@ -60,9 +60,12 @@
 }
 
 /* Warning*/
+
 #warning .modal-dialog {
+  position: absolute;
   width: 300px;
-  margin-right: 8px;
+  margin: 0;
+  right: 8px;
 }
 
 #warning .modal-body {
@@ -93,8 +96,10 @@
 }
 
 #region .modal-dialog {
+  position: absolute;
   width: 300px;
-  margin-right: 8px;
+  margin: 0;
+  right: 8px;
 }
 
 #region .region-toggle {
@@ -119,8 +124,10 @@
 }
 
 #hydrology .modal-dialog {
+  position: absolute;
   width: 300px;
-  margin-right: 8px;
+  margin: 0;
+  right: 8px;
 }
 
 .collapsible {

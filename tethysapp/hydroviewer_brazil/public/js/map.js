@@ -1,5 +1,25 @@
 const REGIONS_GROUP = 'regions';
 const OTTOBACIAS_GROUP = 'ottobacias';
+const FEATURE_Z_INDEX = 100;
+
+const moveLayer = (layer, toIndex) => {
+    const index = findLayerIndex(layer);
+    
+    if (index === -1 || index === toIndex) { return; }
+
+    const removed = map.getLayers().removeAt(index);
+    map.getLayers().insertAt(toIndex, removed);
+}
+
+const moveLayers = (layers, toIndex) => {
+    layers.forEach((layer, index) => {
+        moveLayer(layer, toIndex - index);
+    });
+}
+
+const findLayerIndex = (layer) => {
+    return map.getLayers().getArray().findIndex((l) => l === layer);
+}
 
 const featureStyle = (feature) => {
     const layers = [
@@ -19,7 +39,7 @@ const featureStyle = (feature) => {
                     color,
                     width: 3,
                 }),
-                zIndex: 100,
+                zIndex: FEATURE_Z_INDEX,
             });
         }
     }
@@ -31,7 +51,17 @@ const featureStyle = (feature) => {
         }),
         zIndex: 1,
     });
- };
+};
+
+const regionsStyle = () => {
+    return new ol.style.Style({
+        stroke: new ol.style.Stroke({
+            color: REGION_COLOR,
+            width: 3,
+        }),
+        zIndex: 1,
+    });
+};
   
  const checkIntersectionsWithLayer = (feature, withLayer) => {
     if (!withLayer.getVisible()) { return false; }
@@ -104,6 +134,11 @@ const featureStyle = (feature) => {
  };
 
  const buildWarningPoints = () => {
+    if (typeof wmsLayer === 'undefined') {
+        setTimeout(buildWarningPoints, 50);
+        return;
+    }
+
     const points = {
         streams: {
             icon: '<svg width="20" height="20" viewPort="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg"><polyline points="19 1, 1 6, 19 14, 1 19" stroke="#0000FF" fill="transparent" stroke-width="2"/></svg>',
@@ -112,57 +147,40 @@ const featureStyle = (feature) => {
             isOn: true,
         },
         'all-warning': {
-            name: 'All Warnings',
+            name: 'Warning points',
+            layers: [
+                hundred_year_warning,
+                fifty_year_warning,
+                twenty_five_year_warning,
+                ten_year_warning,
+                five_year_warning,
+                two_year_warning,
+            ],
         },
-        '100-year-warning': {
-            icon: '<svg width="20" height="20" viewPort="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg"><polygon points="0 20, 10 0, 20 20" stroke="rgba(128,0,246,1)" fill="rgba(128,0,246,0.4)" stroke-width="2"/></svg>',
-            name: '100-Year Warnings',
-            layer: hundred_year_warning,
-            period: 100,
+        accumulatedRainfall: {
+            name: 'Accumulated Rainfall',
+            layer: wms_layers[0],
         },
-        '50-year-warning': {
-            icon: '<svg width="20" height="20" viewPort="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg"><polygon points="0 20, 10 0, 20 20" stroke="rgba(128,0,106,1)" fill="rgba(128,0,106,0.4)" stroke-width="2"/></svg>',
-            name: '50-Year Warnings',
-            layer: fifty_year_warning,
-            period: 50,
+        rainfallProbability50: {
+            name: 'Rainfall Probability > 50mm',
+            layer: wms_layers[1],
         },
-        '25-year-warning': {
-            icon: '<svg width="20" height="20" viewPort="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg"><polygon points="0 20, 10 0, 20 20" stroke="rgba(255,0,0,1)" fill="rgba(255,0,0,0.4)" stroke-width="2"/></svg>',
-            name: '25-Year Warnings',
-            layer: twenty_five_year_warning,
-            period: 25,
+        rainfallProbability150: {
+            name: 'Rainfall Probability > 150mm',
+            layer: wms_layers[2],
         },
-        '10-year-warning': {
-            icon: '<svg width="20" height="20" viewPort="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg"><polygon points="0 20, 10 0, 20 20" stroke="rgba(255,56,5,1)" fill="rgba(255,56,5,0.4)" stroke-width="2"/></svg>',
-            name: '10-Year Warnings',
-            layer: ten_year_warning,
-            period: 10,
-        },
-        '5-year-warning': {
-            icon: '<svg width="20" height="20" viewPort="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg"><polygon points="0 20, 10 0, 20 20" stroke="rgba(253,154,1,1)" fill="rgba(253,154,1,0.4)" stroke-width="2"/></svg>',
-            name: '5-Year Warnings',
-            layer: five_year_warning,
-            period: 5,
-        },
-        '2-year-warning': {
-            icon: '<svg width="20" height="20" viewPort="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg"><polygon points="0 20, 10 0, 20 20" stroke="rgba(254,240,1,1)" fill="rgba(254,240,1,0.4)" stroke-width="2"/></svg>',
-            name: '2-Year Warnings',
-            layer: two_year_warning,
-            period: 2,
+        rainfallProbability300: {
+            name: 'Rainfall Probability > 300mm',
+            layer: wms_layers[3],
         },
     };
 
     const parent = $('#warning .modal-body');
   
     const showAll = (show) => {
-        Object
-            .keys(points)
-            .filter((key) => key !== 'streams')
-            .forEach((key) => {
-            if (isEnabled(key)) { return; }
-            if (!points[key].layer) { return; }
-            points[key].layer.setVisible(show)
-        });
+        points['all-warning']
+            .layers
+            .forEach((layer) => layer.setVisible(show));
     };
 
     const isAllEnabled = () => {
@@ -192,16 +210,12 @@ const featureStyle = (feature) => {
                 name: point.name,
                 isOn,
                 onToggle: async (isActive) => {
-                    if (!isAllEnabled() || key === 'streams') {
-                        point.layer.setVisible(isActive);
-                        checkIntersections();
-                    }
+                    point.layer.setVisible(isActive);
+                    checkIntersections();
                 },
                 onRemove: () => {
-                    if (!isAllEnabled() || key === 'streams') {
-                        point.layer.setVisible(false);
-                        checkIntersections();
-                    }
+                    point.layer.setVisible(false);
+                    checkIntersections();
                     $(toggle).find('input').prop('checked', false);
                 },
             });
@@ -217,6 +231,7 @@ const featureStyle = (feature) => {
                     observeLayer({
                         key,
                         name: point.name,
+                        layers: point.layers,
                         onToggle: (isActive) => {
                             showAll(isActive);
                             checkIntersections();
@@ -250,6 +265,11 @@ const featureStyle = (feature) => {
  };
 
  const buildHydrology = () => {
+    if (typeof ottobacias_index === 'undefined') {
+        setTimeout(buildHydrology, 50);
+        return;
+    }
+
     const items = {
         stations: {
             icon: '<svg width="20" height="20" viewPort="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg"><polyline points="0 10, 0 0, 10 0, 10 10, 0 10" stroke="rgba(255,0,0,1)" fill="rgba(255,0,0,1)" stroke-width="2"/></svg>',
@@ -262,7 +282,7 @@ const featureStyle = (feature) => {
     Object.keys(ottobacias_index).forEach((key) => {
         items[`ottobacia-${ key }`] = {
             ...ottobacias_index[key],
-            isOn: key === 'level_2',
+            isOn: key === 'level_1',
             group: OTTOBACIAS_GROUP,
         };
     });
@@ -291,7 +311,8 @@ const featureStyle = (feature) => {
                     geojsons,
                     layerName: key,
                     group: item.group,
-                    visible: false,
+                    visible: item.isOn,
+                    style: featureStyle,
                 });
 
                 // Caching
@@ -306,7 +327,7 @@ const featureStyle = (feature) => {
                 group: item.group,
                 onToggle: (isActive) => {
                     if (isActive && item.group) {
-                        turnOffLayerGroup(map, item.group);   
+                        turnOffLayerGroup(map, item.group, item.layer);   
                     }
 
                     item.layer.setVisible(isActive);
@@ -337,88 +358,13 @@ const featureStyle = (feature) => {
         item.isOn && observe(true);
     });
  };
-
- const buildOttobacias = () => {
-    const parent = $('#hydrology .modal-body');
-    const button = document.createElement('button');
-    button.classList.add('collapsible');
-    button.id = 'ottobacias-button';
-    button.textContent = 'Ottobacias';
-  
-    const content = document.createElement('div');
-    content.classList.add('collapsible-content');
-    content.id = 'ottobacias-content';
-  
-    parent.append(button);
-    parent.append(content);
-  
-    Object.keys(ottobacias_index).forEach((key) => {
-        const index = ottobacias_index[key];
-        const option = document.createElement('div');
-        const title = document.createElement('div');
-        const toggle = createToggle();
-        toggle.classList.add('hydrology-option-toggle');
-  
-        option.classList.add('common-option-wrapper');
-        title.classList.add('common-option-label');
-        title.textContent = index.name;
-  
-        $(option).append(title, toggle);
-        $(content).append(option);
-        $(toggle).click(() => {
-            const isActive = $(toggle).find('input').prop('checked');
-            let layer = ottobacias_index[key].layer;
-
-            if (!layer) {
-                const geojsons = index.geojsons;
-                layer = createGeojsonsLayer({
-                    geojsons,
-                    layerName: key,
-                    group: OTTOBACIAS_GROUP,
-                    visible: false,
-                });
-
-                // Caching
-                ottobacias_index[key].layer = layer;
-            }
-
-            if (isActive) {
-                observeLayer({
-                    key,
-                    layer,
-                    name: index.name,
-                    group: OTTOBACIAS_GROUP,
-                    onToggle: (isActive) => {
-                        if (isActive) {
-                            turnOffLayerGroup(map, OTTOBACIAS_GROUP);   
-                        }
-
-                        layer.setVisible(isActive);
-                    },
-                    onRemove: () => {
-                        $(toggle).find('input').prop('checked', false);
-                        layer.setVisible(false);
-                    },
-                });
-            } else {
-                stopObservingLayer(layer);
-                layer.setVisible(false);
-            }
-        });
-    });
-  
-    $(button).click(() => {
-        $(content).toggleClass('active');
-  
-        if ($(content).hasClass('active')) {
-            $(content).css('maxHeight', $(content).prop('scrollHeight'));
-        } else {
-            $(content).css('maxHeight', 0);
-        }
-    })
- };
   
  const buildRegions = () => {
+    if (typeof region_index === 'undefined') {
+        setTimeout(buildRegions, 50);
+        return;
+    }
+
     const parent = $('#region .modal-body');
   
     Object.keys(region_index).forEach((key) => {
@@ -433,22 +379,8 @@ const featureStyle = (feature) => {
         title.classList.add('region-option-label');
         title.textContent = index.name;
   
-        $(option).append(title, toggle);
-        $(parent).append(option);
-        $(toggle).click(() => {
-            disableOvservedLayerGroup(REGIONS_GROUP);
-            turnOffLayerGroup(map, REGIONS_GROUP);
-
-            let layer = region_index[key].layer;
-
-            const onToggle = (isActive, layer) => {
-                if (isActive) {
-                    turnOffLayerGroup(map, REGIONS_GROUP);
-                }
-
-                layer.setVisible(isActive);
-                zoomToLayer(layer);
-            };
+        const observe = (isOn) => {
+            let layer = index.layer;
 
             if (!layer) {
                 const geojsons = index.geojsons;
@@ -456,36 +388,44 @@ const featureStyle = (feature) => {
                     geojsons,
                     layerName: key,
                     group: REGIONS_GROUP,
-                    noStyle: true,
+                    style: regionsStyle,
                 });
 
                 // Caching
                 region_index[key].layer = layer;
-
-                observeLayer({
-                    key,
-                    layer,
-                    name: index.name,
-                    group: REGIONS_GROUP,
-                    onToggle: (isActive) => onToggle(isActive, layer),
-                    onRemove: () => layer.setVisible(false),
-                    isOn: true,
-                });
-
-
-
-            } else {
-                enableOvservedLayer(key);
-                onToggle(true, layer);
             }
+
+            observeLayer({
+                key,
+                isOn,
+                layer,
+                name: index.name,
+                group: REGIONS_GROUP,
+                onToggle: (isActive) => {
+                    if (isActive) {
+                        turnOffLayerGroup(map, REGIONS_GROUP, layer);
+                    }
+    
+                    layer.setVisible(isActive);
+                    zoomToLayer(layer);
+                },
+                onRemove: () => {
+                    $(toggle).find('input').prop('checked', false);
+                    index.layer.setVisible(false);
+                },
+            });
+
+            layer.setVisible(true);
+            setTimeout(() => zoomToLayer(layer), 500);
+        };
+
+        $(option).append(title, toggle);
+        $(parent).append(option);
+        $(toggle).click(() => {
+            turnOffLayerGroup(map, REGIONS_GROUP);
+            observe(true);
         });
     });
- };
-
- const enableOvservedLayer = (key) => {
-    $(`#layers-panel #observed-layers #observed-layer-${ key }`)
-        .find('input')
-        .prop('checked', true);
  };
 
  const disableOvservedLayerGroup = (group, except) => {
@@ -497,7 +437,39 @@ const featureStyle = (feature) => {
     });
  };
 
- const buildObservedLayer = (observedLayer, isOn) => {
+ const updateLayersZIndex = () => {
+    const totalLayers = map.getLayers().getArray().length;
+
+    let index = 0;
+
+    for (let observed of observedLayers) {
+        if (observed.layer) {
+            moveLayer(observed.layer, totalLayers - index - 1);
+            index += 1;
+        } else if (observed.layers) {
+            const layers = observed
+                .layers
+                .filter((l) => !observedLayers.find(({ layer }) => layer === l));
+            moveLayers(layers, totalLayers - index - 1);
+            index += layers.length;
+        }
+    }
+ };
+
+ const buildObservedLayers = () => {
+    const container = $('#observed-layers');
+
+    $(container).empty();
+
+    observedLayers.forEach((observedLayer) => {
+        const child = buildObservedLayer(observedLayer);
+        container.append(child);
+    });
+
+    updateLayersZIndex();
+ };
+
+ const buildObservedLayer = (observedLayer) => {
     const wrapper = document.createElement('div');
     wrapper.classList.add('observed-layer-wrapper');
     wrapper.id = `observed-layer-${ observedLayer.key }`;
@@ -511,7 +483,7 @@ const featureStyle = (feature) => {
     controls.classList.add('observed-layer-controls');
   
     const toggle = createToggle({
-        isOn,
+        isOn: observedLayer.isOn,
         size: 'xs',
         hideLabels: true,
     });
@@ -535,21 +507,34 @@ const featureStyle = (feature) => {
     wrapper.append(title);
     wrapper.append(controls);
 
+    const moveLayer = (diff) => {
+        const currentIndex = observedLayers.findIndex((ol) => ol === observedLayer);
+        const removed = observedLayers.splice(currentIndex, 1);
+
+        observedLayers.splice(currentIndex + diff, 0, ...removed);
+        buildObservedLayers();
+    };
+
     $(moveUp).click(() => {
         $(wrapper).prev().insertAfter(wrapper);
+        moveLayer(-1);
     });
 
     $(moveDown).click(() => {
         $(wrapper).next().insertBefore(wrapper);
+        moveLayer(1);
     });
   
     $(toggle).click(() => {
         disableOvservedLayerGroup(observedLayer.group, wrapper);
 
-        const isOn = $(toggle).find('input').prop('checked');
+        const currentIsOn = observedLayer.isOn;
+        const newIsOn = !currentIsOn;
+
+        observedLayer.isOn = newIsOn;
 
         if (observedLayer.onToggle) {
-            observedLayer.onToggle(isOn);
+            observedLayer.onToggle(newIsOn);
         }
     });
   
@@ -561,6 +546,8 @@ const featureStyle = (feature) => {
         } else if (observedLayer.key) {
             stopObservingLayerByKey(observedLayer.key);
         }
+
+        buildObservedLayers()
     });
   
     return wrapper;
@@ -574,15 +561,6 @@ const featureStyle = (feature) => {
     }
  };
 
- const addObservedLayer = (observed, isOn) => {
-    checkEmptyObservedLayers();
-  
-    const container = $('#observed-layers');
-    const child = buildObservedLayer(observed, isOn);
-    
-    container.append(child);
- };
-
  const removeObservedLayer = (observed) => {
     const element = $(`#observed-layers #observed-layer-${ observed.key }`);
     element.remove();
@@ -594,10 +572,12 @@ const featureStyle = (feature) => {
     const layerData = {
         key: options.key,
         layer: options.layer,
+        layers: options.layers,
         name: options.name,
         group: options.group,
         onToggle: options.onToggle,
         onRemove: options.onRemove,
+        isOn: options.isOn,
     };
     const index = layerData.key ? observedLayers.findIndex((l) => l.key === layerData.key) : -1;
 
@@ -607,7 +587,8 @@ const featureStyle = (feature) => {
         observedLayers.push(layerData);
     }
 
-    addObservedLayer(layerData, options.isOn);
+    checkEmptyObservedLayers();
+    buildObservedLayers();
  };
   
  const stopObservingLayer = (layer) => {
@@ -623,11 +604,6 @@ const featureStyle = (feature) => {
   
     removeObservedLayer(observedLayer);
  };
- 
- const findObservedLayerByKey = (key) => {
-    const index = observedLayers.findIndex((l) => l.key === key);
-    return index >= 0 ? observedLayers[index] : null;
- };
 
  $('#ottobacias-button').click(function () {
     $('#ottobacias-content').toggleClass('active');
@@ -640,10 +616,12 @@ const featureStyle = (feature) => {
  });
 
  $(document).ready(() => {
-    $('#warning').draggable();
-    $('#hydrology').draggable();
+    $('#warning .modal-dialog').draggable();
+    $('#hydrology .modal-dialog').draggable();
     $('#layers-panel').draggable();
-    $('#region').draggable();
+    $('#region .modal-dialog').draggable();
+    $('#obsgraph .modal-dialog').draggable();
+    $('#graph .modal-dialog').draggable();
   
     buildWarningPoints();
     buildHydrology();

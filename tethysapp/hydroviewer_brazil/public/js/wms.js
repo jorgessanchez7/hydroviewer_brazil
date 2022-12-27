@@ -35,21 +35,10 @@ const TWENTY_FIVE_YEAR_WARNING_COLOR = 'rgba(255,0,0,1)';
 const TEN_YEAR_WARNING_COLOR = 'rgba(255,56,5,1)';
 const FIVE_YEAR_WARNING_COLOR = 'rgba(253,154,1,1)';
 const TWO_YEAR_WARNING_COLOR = 'rgba(254,240,1,1)';
-
-function toggleAcc(layerID) {
-    let layer = wms_layers[layerID];
-    if (document.getElementById(`wmsToggle${layerID}`).checked) {
-        // Turn the layer and legend on
-        layer.setVisible(true);
-        $("#wmslegend" + layerID).show(200);
-    } else {
-        layer.setVisible(false);
-        $("#wmslegend" + layerID).hide(200);
-
-    }
-}
+const REGION_COLOR = 'rgba(0,100,0,1)';
 
 function warning_point_style(feature, color) {
+    const layerIndex = observedLayers.length - (observedLayers.findIndex(({ layer }) => layer === feature) ?? observedLayers.length);
     const flow = feature.get('flow');
     const exceed = String(feature.get('exceed'));
     const style = {
@@ -62,6 +51,7 @@ function warning_point_style(feature, color) {
             text: exceed === '0' ? '' : exceed,
             offsetX: 10,
             offsetY: -10,
+            zIndex: layerIndex,
         }),
     };
 
@@ -70,6 +60,7 @@ function warning_point_style(feature, color) {
             fill: new ol.style.Fill({ color }),
             stroke: new ol.style.Stroke({ color: 'black', width: 0.5 }),
             radius: 10,
+            zIndex: layerIndex,
         });
     } else {
         style.image = new ol.style.RegularShape({
@@ -78,6 +69,7 @@ function warning_point_style(feature, color) {
             points: 3,
             radius: 10,
             angle: flow === 'up' ? 0 : Math.PI,
+            zIndex: layerIndex,
         });
     }
 
@@ -200,7 +192,6 @@ function init_map() {
         source: new ol.source.Vector(),
         style: (feature) => warning_point_style(feature, HUNDRED_YEAR_WARNING_COLOR),
     });
-
 
     if ($('#model option:selected').text() === 'ECMWF-RAPID') {
         var wmsLayer = new ol.layer.Image({
@@ -371,20 +362,20 @@ function get_warning_points(model, watershed, subbasin) {
             console.log(error);
         },
         success: function(result) {
-            map.getLayers().item(1).getSource().clear();
-            map.getLayers().item(2).getSource().clear();
-            map.getLayers().item(3).getSource().clear();
-            map.getLayers().item(4).getSource().clear();
-            map.getLayers().item(5).getSource().clear();
-            map.getLayers().item(6).getSource().clear();
+            two_year_warning.getSource().clear();
+            five_year_warning.getSource().clear();
+            ten_year_warning.getSource().clear();
+            twenty_five_year_warning.getSource().clear();
+            fifty_year_warning.getSource().clear();
+            hundred_year_warning.getSource().clear();
 
             [
-                [map.getLayers().item(1), 2],
-                [map.getLayers().item(2), 5],
-                [map.getLayers().item(3), 10],
-                [map.getLayers().item(4), 25],
-                [map.getLayers().item(5), 50],
-                [map.getLayers().item(6), 100],
+                [ two_year_warning, 2 ],
+                [ five_year_warning, 5 ],
+                [ ten_year_warning, 10 ],
+                [ twenty_five_year_warning, 25 ],
+                [ fifty_year_warning, 50 ],
+                [ hundred_year_warning, 100 ],
             ].forEach(([ layer, period ]) => {
                 const points = result.filter((point) => point[0] === period);
 
@@ -509,7 +500,9 @@ function get_historic_data(model, watershed, subbasin, comid, startdate) {
             'comid': comid,
             'startdate': startdate
         },
+        error: console.log,
         success: function(data) {
+            console.log('success', data)
             if (!data.error) {
                 $('#his-view-file-loading').addClass('hidden');
                 $('#historical-chart').removeClass('hidden');
@@ -1170,12 +1163,19 @@ $(function() {
     });
 });
 
-function turnOffLayerGroup(map, layerGroup) {
+function turnOffLayerGroup(map, layerGroup, except) {
     const layers = map.getLayers().getArray();
 
     for (let layer of layers) {
         if (layer.get('group') === layerGroup) {
             layer.setVisible(false);
+
+            observedLayers
+                .filter(({ group, layer }) => {
+                    return group === layerGroup
+                        && (except ? layer !== except : true);
+                })
+                .forEach((observed) => observed.isOn = false);
         }
     }
 }
@@ -1194,8 +1194,10 @@ function removeLayer(map, layerName) {
 function zoomToLayer(layer) {
     if (layer.getVisible() === false) { return; }
 
-    const myExtent = layer.getSource().getExtent();
-    map.getView().fit(myExtent, map.getSize());
+    setTimeout(() => {
+        const myExtent = layer.getSource().getExtent();
+        map.getView().fit(myExtent, map.getSize());
+    }, 10);
 }
 
 function createGeojsonsLayer(options) {
@@ -1204,7 +1206,7 @@ function createGeojsonsLayer(options) {
         layerName,
         group,
         visible = true,
-        noStyle,
+        style,
     } = options;
 
     for (let i in geojsons) {
@@ -1217,7 +1219,7 @@ function createGeojsonsLayer(options) {
             group,
             name: layerName || 'myRegion',
             source: regionsSource,
-            style: noStyle ? null : featureStyle,
+            style,
             visible,
         });
 

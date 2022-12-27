@@ -106,9 +106,5 @@ let region_index = {
 	  "tocantins": {
 		"name": "Tocantins",
 		"geojsons": ["TOCANTINS.json"]
-	  },
-	  "ottobacias_nivel1": {
-		"name": "Ottobacias_nivel1",
-		"geojsons": ["ottobacias_nivel1.json"]
 	  }
 };

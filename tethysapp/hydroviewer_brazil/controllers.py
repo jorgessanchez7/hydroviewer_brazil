@@ -563,7 +563,6 @@ def get_historic_data(request, app_workspace):
 	"""""
 
 	get_data = request.GET
-
 	try:
 		# model = get_data['model']
 		watershed = get_data['watershed']
@@ -590,6 +589,7 @@ def get_historic_data(request, app_workspace):
 		simulated_df.index = pd.to_datetime(simulated_df.index)
 		simulated_df.index = simulated_df.index.to_series().dt.strftime("%Y-%m-%d")
 		simulated_df.index = pd.to_datetime(simulated_df.index)
+		simulated_df.drop('comid', inplace=True, axis=1, errors='ignore')
 
 		simulated_data_file_path = os.path.join(app.get_app_workspace().path, 'simulated_data.json')
 		simulated_df.reset_index(level=0, inplace=True)
@@ -614,6 +614,7 @@ def get_historic_data(request, app_workspace):
 				verify=False).content
 			rperiods_df = pd.read_csv(io.StringIO(res.decode('utf-8')), index_col=0)
 
+		rperiods_df.drop('comid', inplace=True, axis=1, errors='ignore')
 		hydroviewer_figure = geoglows.plots.historic_simulation(simulated_df, rperiods_df, titles={'Reach ID': comid})
 
 		chart_obj = PlotlyView(hydroviewer_figure)
@@ -625,6 +626,7 @@ def get_historic_data(request, app_workspace):
 		return render(request, '{0}/gizmo_ajax.html'.format(base_name), context)
 
 	except Exception as e:
+		print(e)
 		print(str(e))
 		return JsonResponse({'error': 'No historic data found for the selected reach.'})
 
@@ -1378,17 +1380,6 @@ def probabilities(points, watershed, workspace_path):
 	if ensembles_df.empty or rperiods_df.empty:
 		return []
 
-	ens = requests.get(
-		app.get_custom_setting(
-			'api_source') + '/api/ForecastEnsembles/?reach_id=' + str(points[0]) + '&ensemble=all&return_format=csv',
-		verify=False).content
-
-	ensemble_df = pd.read_csv(io.StringIO(ens.decode('utf-8')), index_col=0)
-	ensemble_df.index = pd.to_datetime(ensemble_df.index)
-	ensemble_df[ensemble_df < 0] = 0
-	ensemble_df.index = ensemble_df.index.to_series().dt.strftime("%Y-%m-%d %H:%M:%S")
-	ensemble_df.index = pd.to_datetime(ensemble_df.index)
-
 	startdate = dt.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0) + dt.timedelta(days=4)
 	enddate = startdate + dt.timedelta(days=1)
 
@@ -1397,7 +1388,6 @@ def probabilities(points, watershed, workspace_path):
 		ensembles = ensembles_df[ensembles_df.comid == int(comid)]
 		ensembles.index = pd.to_datetime(ensembles.index)
 		rperiods = rperiods_df[rperiods_df.index == int(comid)]
-
 		uniqueday = [ startdate, enddate ]
 
 		# get the return periods for the stream reach

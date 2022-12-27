@@ -76,10 +76,6 @@
     <a data-toggle="modal" data-target="#graph"><span class="glyphicon glyphicon-globe"></span></a>
   </div>
 
-  <!--<div class="header-button glyphicon-button" data-toggle="tooltip" data-placement="bottom" title="View Table of Contents">
-    <a data-toggle="modal" data-target="#toc_modal"><span class="glyphicon glyphicon-list-alt"></span></a>
-  </div> -->
-
   <div class="header-button glyphicon-button" data-toggle="tooltip" data-placement="bottom" title="About">
     <a data-toggle="modal" data-target="#about"><span class="glyphicon glyphicon-info-sign"></span></a>
   </div>
@@ -297,7 +293,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h2 class="modal-title" id="about-modal-label">Warnings</h2>
+        <h2 class="modal-title" id="about-modal-label">Forecast</h2>
       </div>
       <div class="modal-body">
 
@@ -363,53 +359,6 @@
   </div>
 </div>
 
-<!-- Table of Contents Modal -->
-<div id="toc_modal" class="modal fade" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title">Table of Contents</h4>
-      </div>
-      <div class="modal-body tree">
-        <!-- List group -->
-        <ul class="list-group">
-          <li class="list-group-item">
-            Accumulated Rainfall
-            <div class="pull-right">
-              <input id="wmsToggle0" name="AccRainEGE" type="checkbox" onclick="toggleAcc(0);"/>
-              <label for="AccRainEGE" class="label-default"></label>
-            </div>
-          </li>
-          <li class="list-group-item">
-            Rainfall Probability > 50mm
-            <div class="pull-right">
-              <input id="wmsToggle1" name="EGE_probRgt50" type="checkbox" onclick="toggleAcc(1);"/>
-              <label for="EGE_probRgt50" class="label-default"></label>
-            </div>
-          </li>
-          <li class="list-group-item">
-            Rainfall Probability > 150mm
-            <div class="pull-right">
-              <input id="wmsToggle2" name="EGE_probRgt150" type="checkbox" onclick="toggleAcc(2);"/>
-              <label for="EGE_probRgt150" class="label-default"></label>
-            </div>
-          </li>
-          <li class="list-group-item">
-            Rainfall Probability > 300mm
-            <div class="pull-right">
-              <input id="wmsToggle3" name="EGE_probRgt300" type="checkbox" onclick="toggleAcc(3);"/>
-              <label for="EGE_probRgt300" class="label-default"></label>
-            </div>
-          </li>
-        </ul>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-      </div>
-    </div><!-- /.modal-content -->
-  </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
 {% endblock %}
 
 {% block app_actions %}

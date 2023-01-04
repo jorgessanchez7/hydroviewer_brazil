@@ -520,7 +520,7 @@ def get_available_dates(request, app_workspace):
 	subbasin = get_data['subbasin']
 	comid = get_data['comid']
 
-	cache_path = os.path.join(app_workspace.path, f'available_dates_{ watershed }-{ subbasin }.csv')
+	cache_path = os.path.join(app_workspace.path, f'available_dates_{ watershed }-{ subbasin }.json')
 	dates_array = []
 
 	if cache_enabled and os.path.exists(cache_path):
@@ -1406,20 +1406,23 @@ def probabilities(points, watershed, workspace_path):
 			if column == 'comid':
 				continue
 
-			column_max = tmp[column].to_numpy().max()
+			try:
+				column_max = tmp[column].to_numpy().max()
 
-			if period == 100 and column_max > rp100:
-					result += 1
-			if period == 50 and column_max > rp50:
-					result += 1
-			if period == 25 and column_max > rp25:
-					result += 1
-			if period == 10 and column_max > rp10:
-					result += 1
-			if period == 5 and column_max > rp5:
-					result += 1
-			if period == 2 and column_max > rp2:
-					result += 1
+				if period == 100 and column_max > rp100:
+						result += 1
+				if period == 50 and column_max > rp50:
+						result += 1
+				if period == 25 and column_max > rp25:
+						result += 1
+				if period == 10 and column_max > rp10:
+						result += 1
+				if period == 5 and column_max > rp5:
+						result += 1
+				if period == 2 and column_max > rp2:
+						result += 1
+			except:
+				pass
 
 		return round(result * 100 / 52)
 

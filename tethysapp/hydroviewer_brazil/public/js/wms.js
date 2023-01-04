@@ -25,6 +25,7 @@ var $loading = $('#view-file-loading');
 var m_downloaded_historical_streamflow = false;
 var m_downloaded_flow_duration = false;
 
+const wmsWorkspace = 'HS-11765271903a45d483416ce57bf8c710';
 const glofasURL = `http://globalfloods-ows.ecmwf.int/glofas-ows/ows.py`
 const observedLayers = [];
 
@@ -245,7 +246,7 @@ function view_watershed() {
 
         $('#dates').addClass('hidden');
 
-        var workspace = JSON.parse($('#geoserver_endpoint').val())[1];
+        //var workspace = JSON.parse($('#geoserver_endpoint').val())[1];
         var model = $('#model option:selected').text();
         var watershed = $('#watershedSelect option:selected').text().split(' (')[0].replace(' ', '_').toLowerCase();
         var subbasin = $('#watershedSelect option:selected').text().split(' (')[1].replace(')', '').toLowerCase();
@@ -253,11 +254,43 @@ function view_watershed() {
         var subbasin_display_name = $('#watershedSelect option:selected').text().split(' (')[1].replace(')', '');
         $("#watershed-info").append('<h3>Current Watershed: ' + watershed_display_name + '</h3><h5>Subbasin Name: ' + subbasin_display_name);
 
-        var layerName = watershed_layer_name();
+        // var layerName = watershed_layer_name();
+
+        const style = `
+        <?xml version="1.0" encoding="ISO-8859-1"?>
+        <StyledLayerDescriptor version="1.0.0"
+            xsi:schemaLocation="http://www.opengis.net/sld StyledLayerDescriptor.xsd"
+            xmlns="http://www.opengis.net/sld"
+            xmlns:ogc="http://www.opengis.net/ogc"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <NamedLayer>
+                <Name>${ wmsWorkspace }:Brazil_Stations_RT</Name>
+                <UserStyle>
+                    <FeatureTypeStyle>
+                        <Rule>
+                            <PointSymbolizer>
+                                <Graphic>
+                                    <Mark>
+                                        <WellKnownName>square</WellKnownName>
+                                        <Fill>
+                                            <CssParameter name="fill">#000099</CssParameter>
+                                        </Fill>
+                                    </Mark>
+                                    <Size>6</Size>
+                                </Graphic>
+                           </PointSymbolizer>
+                         </Rule>
+                    </FeatureTypeStyle>
+                </UserStyle>
+            </NamedLayer>
+        </StyledLayerDescriptor>
+        `;
+
         wmsLayer = new ol.layer.Image({
             source: new ol.source.ImageWMS({
                 //url: JSON.parse($('#geoserver_endpoint').val())[0].replace(/\/$/, "") + '/wms',
-                url: 'https://geoserver.hydroshare.org/geoserver/HS-11765271903a45d483416ce57bf8c710/wms',
+                url: `https://geoserver.hydroshare.org/geoserver/${ wmsWorkspace }/wms`,
                 //params: { 'LAYERS': layerName },
                 params: {'LAYERS': 'south_america-brazil-geoglows-drainage_line' },
                 serverType: 'geoserver',
@@ -267,14 +300,16 @@ function view_watershed() {
         });
         feature_layer = wmsLayer;
 
-
         get_warning_points(model, watershed, subbasin);
 
         wmsLayer2 = new ol.layer.Image({
             source: new ol.source.ImageWMS({
                 //url: JSON.parse($('#geoserver_endpoint').val())[0].replace(/\/$/, "")+'/wms',
-                url: 'https://geoserver.hydroshare.org/geoserver/HS-11765271903a45d483416ce57bf8c710/wms',
-                params: {'LAYERS':"Brazil_Stations_RT"},
+                url: `https://geoserver.hydroshare.org/geoserver/${ wmsWorkspace }/wms`,
+                params: {
+                    'LAYERS':"Brazil_Stations_RT",
+                    'SLD_BODY': style,
+                },
                 serverType: 'geoserver',
                 crossOrigin: 'Anonymous'
             }),
@@ -301,7 +336,7 @@ function view_watershed() {
                 var x = capabilities.responseText
                     .split('<FeatureTypeList>')[1]
                     //.split(workspace + ':' + watershed + '-' + subbasin)[1]
-                    .split('HS-11765271903a45d483416ce57bf8c710:south_america-brazil-geoglows-drainage_line')[1]
+                    .split(`${ wmsWorkspace }:south_america-brazil-geoglows-drainage_line`)[1]
                     .split('LatLongBoundingBox ')[1]
                     .split('/></FeatureType>')[0];
 
@@ -1202,6 +1237,7 @@ function zoomToLayer(layer) {
 
 function createGeojsonsLayer(options) {
     const {
+        staticGeoJson,
         geojsons,
         layerName,
         group,
@@ -1211,7 +1247,7 @@ function createGeojsonsLayer(options) {
 
     for (let i in geojsons) {
         var regionsSource = new ol.source.Vector({
-           url: staticGeoJSON + geojsons[i],
+           url: staticGeoJson + geojsons[i],
            format: new ol.format.GeoJSON()
         });
 

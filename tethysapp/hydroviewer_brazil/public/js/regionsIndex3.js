@@ -1,8 +1,4 @@
 let region_index3 = {
-      "brazil": {
-        "name": "Brazil",
-        "geojsons": ["Brazil.json"]
-      },
       "391_108_LITORAL_AP_01": {
         "name": "391 108 LITORAL AP 01",
         "geojsons": ["391_108_LITORAL_AP_01.json"]

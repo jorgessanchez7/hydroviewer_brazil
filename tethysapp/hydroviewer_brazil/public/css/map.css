@@ -112,6 +112,64 @@
   width: 20px;
 }
 
+/*region2*/
+#region2 .region2-option-wrapper {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+}
+
+#region2 .region2-option-label {
+  display: flex;
+  gap: 4px;
+}
+
+#region2 .modal-dialog {
+  position: absolute;
+  width: 300px;
+  margin: 0;
+  right: 8px;
+}
+
+#region2 .region2-toggle {
+  fill: #777;
+  cursor: pointer;
+}
+
+#region2 .region2-toggle svg {
+  height: 20px;
+  width: 20px;
+}
+
+/*region3*/
+#region3 .region3-option-wrapper {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+}
+
+#region3 .region3-option-label {
+  display: flex;
+  gap: 4px;
+}
+
+#region3 .modal-dialog {
+  position: absolute;
+  width: 300px;
+  margin: 0;
+  right: 8px;
+}
+
+#region3 .region3-toggle {
+  fill: #777;
+  cursor: pointer;
+}
+
+#region3 .region3-toggle svg {
+  height: 20px;
+  width: 20px;
+}
+
 #hydrology .hydrology-option-wrapper {
   display: flex;
   justify-content: space-between;

@@ -427,6 +427,9 @@ const regionsStyle = () => {
             turnOffLayerGroup(map, REGIONS_GROUP);
             observe(true);
         });
+        if (index.name == "Brazil"){
+            observe(true);
+        }
     });
  };
 

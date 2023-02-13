@@ -38,7 +38,7 @@ def get_warning_points(api_source, watershed, workspace):
       new_rp = []
       terms = term.split(',')
       for te in terms:
-        if te is not '0':
+        if te != '0':
           new_rp.append(1)
         else:
           new_rp.append(0)

@@ -767,8 +767,6 @@ const regionsStyle = () => {
     $('#region .modal-dialog').draggable();
     $('#region2 .modal-dialog').draggable();
     $('#region3 .modal-dialog').draggable();
-    $('#obsgraph .modal-dialog').draggable();
-    $('#graph .modal-dialog').draggable();
   
     buildWarningPoints();
     buildHydrology();

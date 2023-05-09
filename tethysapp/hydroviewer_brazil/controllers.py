@@ -1388,7 +1388,7 @@ def probabilities(points, watershed, workspace_path):
 	def handle(point):
 		[ period, comid ] = point
 		ensembles = ensembles_df[ensembles_df.comid == int(comid)]
-		ensembles.index = pd.to_datetime(ensembles.index)
+		ensembles.index = pd.to_datetime(ensembles.index).tz_localize(None)
 		rperiods = rperiods_df[rperiods_df.index == int(comid)]
 		uniqueday = [ startdate, enddate ]
 

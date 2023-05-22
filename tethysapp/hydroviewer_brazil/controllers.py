@@ -315,7 +315,6 @@ def get_warning_points(request, app_workspace):
 	if get_data['model'] == 'ECMWF-RAPID':
 		watershed = get_data['watershed']
 		cache_path = os.path.join(app_workspace.path, f'warning_points_{ watershed }.csv')
-
 		if os.path.exists(cache_path):
 			df = pd.read_csv(cache_path)
 			points = [c for c in zip(df['period'], df['comid'])]
@@ -1373,12 +1372,12 @@ def probabilities(points, watershed, workspace_path):
 	ensembles_df = (pd.read_csv(path, index_col=0)
 		if os.path.exists(path)
 		else pd.DataFrame())
-
+	
 	path = os.path.join(workspace_path, f'periods_{ watershed }.csv')
 	rperiods_df = (pd.read_csv(path, index_col=0)
 		if os.path.exists(path)
 		else pd.DataFrame())
-
+	
 	if ensembles_df.empty or rperiods_df.empty:
 		return []
 
@@ -1391,7 +1390,6 @@ def probabilities(points, watershed, workspace_path):
 		ensembles.index = pd.to_datetime(ensembles.index).tz_localize(None)
 		rperiods = rperiods_df[rperiods_df.index == int(comid)]
 		uniqueday = [ startdate, enddate ]
-
 		# get the return periods for the stream reach
 		rp2 = rperiods['return_period_2'].values
 		rp5 = rperiods['return_period_5'].values
@@ -1401,7 +1399,6 @@ def probabilities(points, watershed, workspace_path):
 		rp100 = rperiods['return_period_100'].values
 		# fill the lists of things used as context in rendering the template
 		tmp = ensembles.loc[uniqueday[0]:uniqueday[1]]
-
 		result = 0
 
 		for column in tmp:
@@ -1425,7 +1422,6 @@ def probabilities(points, watershed, workspace_path):
 						result += 1
 			except:
 				pass
-
 		return round(result * 100 / 52)
 
 	results = []
@@ -1434,3 +1430,4 @@ def probabilities(points, watershed, workspace_path):
 		results = executor.map(handle, points)
 
 	return list(results)
+

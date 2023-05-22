@@ -111,7 +111,7 @@ def chunks(lst, n):
 def get_request(url):
   return requests.get(url, verify=False).content
 
-def request_comid_info(api_source, comid, workspace, watershed):
+def request_comid_info(api_source, comid, workspace, watershed, start, end):
   cache_stats_path = os.path.join(workspace, f'stats_{ watershed }.csv')
   stats_df = pd.read_csv(cache_stats_path, index_col=0) if os.path.exists(cache_stats_path) else pd.DataFrame()
   stats_df = stats_df[stats_df.comid == comid]
@@ -128,21 +128,22 @@ def request_comid_info(api_source, comid, workspace, watershed):
     res = get_request(api_source + '/api/ReturnPeriods/?reach_id=' + str(comid) + '&return_format=csv')
     periods_df = pd.read_csv(io.StringIO(res.decode('utf-8')), index_col=0)
 
-  date_limit = dt.date.today() +  + dt.timedelta(days=6)
-  today_str = dt.date.today().strftime("%Y-%m-%d")
+  date_start = dt.date.today() + dt.timedelta(days=start)
+  date_start_str = date_start.strftime("%Y-%m-%d")
+  date_limit = date_start + dt.timedelta(days=end)
   date_limit_str = date_limit.strftime("%Y-%m-%d")
 
   stats_df.index = pd.to_datetime(stats_df.index)
   stats_df[stats_df < 0] = 0
   stats_df.index = stats_df.index.to_series().dt.strftime("%Y-%m-%d %H:%M:%S")
-  stats_df = stats_df[stats_df.index >= today_str]
+  stats_df = stats_df[stats_df.index >= date_start_str]
   stats_df = stats_df[stats_df.index < date_limit_str]
   stats_df.index = pd.to_datetime(stats_df.index)
 
   return (stats_df, periods_df)
 
-def comid_flow(api_source, comid, current_period, next_period, workspace, watershed):
-  comid_info = request_comid_info(api_source, comid, workspace, watershed)
+def comid_flow(api_source, comid, current_period, next_period, workspace, watershed, start, end):
+  comid_info = request_comid_info(api_source, comid, workspace, watershed, start, end)
   stats_df = comid_info[0]
   periods_df = comid_info[1]
   
@@ -178,9 +179,24 @@ def get_warning_points_data(api_source, period, points, workspace, watershed):
   response = []
 
   def request_point_info(point):
-    flow = comid_flow(api_source, point[3], current_period, next_period, workspace, watershed)
+    flow_0 = comid_flow(api_source, point[3], current_period, next_period, workspace, watershed, 0,4)
+    flow_1 = comid_flow(api_source, point[3], current_period, next_period, workspace, watershed, 4,10)
+    flow_2 = comid_flow(api_source, point[3], current_period, next_period, workspace, watershed, 10,16)
+ 
+    all = [flow_0, flow_1, flow_2]
+    flow = None
+    flow_h = None
 
-    response.append([point[0], point[1], point[2], point[3], flow])
+    if 'up' in all:
+      flow_h = all.index('up')
+      flow = 'up'
+    elif 'same' in all:
+      flow_h = all.index('same')
+      flow = 'same'
+    elif 'down' in all:
+      flow_h = all.index('down')
+      flow = 'down'
+    response.append([point[0], point[1], point[2], point[3], flow, flow_h])
 
   for point in points.values:
     request_point_info(point)
@@ -226,10 +242,11 @@ def get_all_warning_points_data(api_source, watershed, workspace=WORKSPACE_DIR, 
   print('Gathering additional data')
   with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
       results = executor.map(lambda args: get_warning_points_data(api_source, *args, workspace, watershed), args)
+      print(results)
 
   dataframes = []
   for result in results:
-    df = pd.DataFrame(result, columns=['period', 'lat', 'lon', 'comid', 'flow_status'])
+    df = pd.DataFrame(result, columns=['period', 'lat', 'lon', 'comid', 'flow_status', 'flow_peaks'])
     dataframes.append(df)
 
   result_df = pd.concat(dataframes)

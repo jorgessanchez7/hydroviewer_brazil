@@ -19,7 +19,8 @@ var default_extent,
     fifty_year_warning,
     hundred_year_warning,
     map,
-    wms_layers;
+    wms_layers,
+    allWarningActive;
 
 var $loading = $('#view-file-loading');
 var m_downloaded_historical_streamflow = false;
@@ -29,19 +30,22 @@ const wmsWorkspace = 'HS-11765271903a45d483416ce57bf8c710';
 const glofasURL = `http://globalfloods-ows.ecmwf.int/glofas-ows/ows.py`
 const observedLayers = [];
 
-const DEFAULT_COLOR = 'rgba(106, 102, 110,1)';
-const HUNDRED_YEAR_WARNING_COLOR = 'rgba(128,0,246,1)';
-const FIFTY_YEAR_WARNING_COLOR = 'rgba(128,0,106,1)';
-const TWENTY_FIVE_YEAR_WARNING_COLOR = 'rgba(255,0,0,1)';
-const TEN_YEAR_WARNING_COLOR = 'rgba(255,56,5,1)';
-const FIVE_YEAR_WARNING_COLOR = 'rgba(253,154,1,1)';
-const TWO_YEAR_WARNING_COLOR = 'rgba(254,240,1,1)';
-const REGION_COLOR = 'rgba(0,100,0,1)';
+const DEFAULT_COLOR = [106, 102, 110];
+const HUNDRED_YEAR_WARNING_COLOR = [128,0,246];
+const FIFTY_YEAR_WARNING_COLOR = [128,0,106];
+const TWENTY_FIVE_YEAR_WARNING_COLOR = [255,0,0];
+const TEN_YEAR_WARNING_COLOR = [255,56,5];
+const FIVE_YEAR_WARNING_COLOR = [253,154,1];
+const TWO_YEAR_WARNING_COLOR = [254,240,1];
+const REGION_COLOR = [0,100,0];
 
 function warning_point_style(feature, color) {
     const layerIndex = observedLayers.length - (observedLayers.findIndex(({ layer }) => layer === feature) ?? observedLayers.length);
     const flow = feature.get('flow');
     const exceed = String(feature.get('exceed'));
+    const peaks = feature.get('peaks');
+    const alpha = peaks === 0 ? 1 : (peaks === 1 ? 0.5 : 0.1);
+    const strokes = peaks === 0 ? 1 : (peaks === 2 ? 0.5 : 0.1);
     const style = {
         text: new ol.style.Text({
             font: '14px Calibri,sans-serif',
@@ -58,15 +62,15 @@ function warning_point_style(feature, color) {
 
     if (flow === 'same') {
         style.image = new ol.style.Circle({
-            fill: new ol.style.Fill({ color }),
-            stroke: new ol.style.Stroke({ color: 'black', width: 0.5 }),
+            fill: new ol.style.Fill({ color: Array.isArray(color) ? [ ...color, alpha] : color }),
+            stroke: new ol.style.Stroke({ color: 'black', width: strokes }),
             radius: 10,
             zIndex: layerIndex,
         });
     } else {
         style.image = new ol.style.RegularShape({
-            fill: new ol.style.Fill({ color }),
-            stroke: new ol.style.Stroke({ color: 'black', width: 0.5 }),
+            fill: new ol.style.Fill({ color: Array.isArray(color) ? [ ...color, alpha] : color }),
+            stroke: new ol.style.Stroke({ color: 'black', width: strokes }),
             points: 3,
             radius: 10,
             angle: flow === 'up' ? 0 : Math.PI,
@@ -360,9 +364,9 @@ function view_watershed() {
 
 function build_warning_points_layer(points, layer, periodFlowMapping = {}) {
     layer.getSource().clear();
-
     for (let i = 0; i < points.length; ++i) {
         const flow = points[i][4];
+        const peaks = points[i][5];
         const coord = [ points[i][2], points[i][1] ];
         const geometry = new ol.geom.Point(
             ol.proj.transform(
@@ -376,8 +380,9 @@ function build_warning_points_layer(points, layer, periodFlowMapping = {}) {
             geometry: geometry,
             point_size: 40,
             comid: points[i][3],
-            exceed: points[i][5],
+            exceed: points[i][6],
             flow,
+            peaks,
         });
         layer.getSource().addFeature(feature);
     }

@@ -250,6 +250,7 @@ def get_all_warning_points_data(api_source, watershed, workspace=WORKSPACE_DIR, 
     dataframes.append(df)
 
   result_df = pd.concat(dataframes)
+  result_df = result_df.drop(result_df[result_df['comid'] == 9107665.0].index)
   result_df.set_index('period', inplace=True)
 
   return result_df

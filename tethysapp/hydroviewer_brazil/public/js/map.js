@@ -676,7 +676,17 @@ const regionsStyle = () => {
     });
 
     $(info).click(() => {
-        $('#about-'+ title.textContent).modal('show');
+        var modalName = title.textContent.split(' ')[0]
+        var modals = ['Streams', 'Stations', 'Warning', 'Ottobacia'];
+        if (modals.includes(modalName)) {
+            $('#about-' + modalName).modal('show');
+        }
+        else if (modalName == 'Accumulated' || modalName == 'Rainfall'){
+            $('#about-Rainfall').modal('show');
+        }
+        else{
+            $('#about-Zoom').modal('show');
+        }
     });
   
     $(toggle).click(() => {

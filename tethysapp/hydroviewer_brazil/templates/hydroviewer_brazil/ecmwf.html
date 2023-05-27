@@ -11,12 +11,14 @@
   {{ block.super }}
   <link href="{% static 'hydroviewer_brazil/css/map.css' %}" rel="stylesheet"/>
   <link href="{% static 'hydroviewer_brazil/css/toggle-switchy.css' %}" rel="stylesheet"/>
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
 {% endblock %}
 
 {% block scripts %}
   {{ block.super }}
   <script src="{% static 'hydroviewer_brazil/js/map.js' %}" type="text/javascript"></script>
   <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
 {% endblock %}
 
 {% block app_content %}
@@ -199,7 +201,7 @@
         </div>
         <div id="interaction"></div>
       </div>
-      <div class="modal-body">
+      <div class="modal-body overflow-auto">
         <!-- Nav tabs -->
         <ul class="nav nav-tabs" role="tablist">
           <li role="presentation" class="nav-item">

@@ -783,6 +783,9 @@ const regionsStyle = () => {
     $('#warning .modal-dialog').draggable();
     $('#hydrology .modal-dialog').draggable();
     $('#layers-panel').draggable();
+    $('#graph .modal-content').resizable();
+    $('#graph .modal-dialog').draggable({ handle: ".modal-header" })
+
     $('#region .modal-dialog').draggable();
     $('#region2 .modal-dialog').draggable();
     $('#region3 .modal-dialog').draggable();

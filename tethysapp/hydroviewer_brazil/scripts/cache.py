@@ -20,6 +20,7 @@ def get_request(url):
 
 def cache_stats(warning_points):
   print('Preparing stats cache')
+
   start = time.time()
 
   def on_result(result, comid):
@@ -46,7 +47,7 @@ def cache_ensembles(warning_points):
 
   return result
 
-def cache_return_periods(warning_points):
+def cache_return_periods(warning_points, new_warnings):
   print('Preparing return periods cache')
   start = time.time()
 
@@ -54,10 +55,10 @@ def cache_return_periods(warning_points):
     return result.assign(comid=comid)
 
   result = cache.cache_results(warning_points, '/api/ReturnPeriods/?reach_id=\%COMID\%&return_format=csv', on_result)
+  result = pd.concat([result, new_warnings])
   result.to_csv(os.path.join(WORKSPACE_DIR, f'periods_{ WATERSHED }.csv'), index=False)
 
   print('Finished return periods cache in:', time.time() - start, 's\n')
-
   return result
 
 def cache_historic_simulation(warning_points):
@@ -136,13 +137,16 @@ def create_cache():
 
     dataframes.append(df)
 
-  wps_df = pd.concat(dataframes)
+  ecmwf_wps = pd.concat(dataframes)
+  new_wp, new_wp_periods = warning_points.get_new_warnings()  
+  wps_df = pd.concat([ecmwf_wps,new_wp])
+
 
   '''First cache stats, as it's used on other caches'''
   stats = cache_stats(wps_df)
   start = pd.to_datetime(stats.datetime[0]).iloc[0].strftime("%Y-%m-%d %H:%M:%S")
 
-  cache_return_periods(wps_df)
+  cache_return_periods(ecmwf_wps, new_wp_periods)
   catch_warning_points(wps_df)
   cache_ensembles(wps_df)
   cache_records(wps_df, start)

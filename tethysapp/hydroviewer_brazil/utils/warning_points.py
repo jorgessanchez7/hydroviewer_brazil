@@ -146,7 +146,7 @@ def comid_flow(api_source, comid, current_period, next_period, workspace, waters
   comid_info = request_comid_info(api_source, comid, workspace, watershed, start, end)
   stats_df = comid_info[0]
   periods_df = comid_info[1]
-  
+
   flow_avg = list(stats_df['flow_avg_m^3/s'].dropna(axis=0))
   start_flow_avg = flow_avg[0]
   max_flow_avg = max(flow_avg)
@@ -156,14 +156,16 @@ def comid_flow(api_source, comid, current_period, next_period, workspace, waters
   period_max = periods_df[next_period].values[0] if next_period != None else float('inf')
 
   flow_status = 'same'
-
+  
   if start_flow_avg >= period_min:
     if max_flow_avg > period_max:
       flow_status = 'up'
     elif min_flow_avg < period_min and max_flow_avg > period_min:
       flow_status = 'down'
   elif max_flow_avg > period_min:
-    flow_status = 'up'
+    flow_status = 'up'  
+  elif (current_period == 'return_period_2') and (min_flow_avg < period_min) and (max_flow_avg < period_min):
+    flow_status = 'neutro'   
 
   return flow_status
 
@@ -188,14 +190,12 @@ def get_warning_points_data(api_source, period, points, workspace, watershed):
     flow_h = None
 
     if 'up' in all:
-      flow_h = all.index('up')
-      flow = 'up'
-    elif 'same' in all:
-      flow_h = all.index('same')
-      flow = 'same'
-    elif 'down' in all:
-      flow_h = all.index('down')
-      flow = 'down'
+        flow_h = all.index('up')
+        flow = 'up'
+    else:
+        flow_h = 0
+        flow = all[0]
+
     response.append([point[0], point[1], point[2], point[3], flow, flow_h])
 
   for point in points.values:
@@ -203,6 +203,43 @@ def get_warning_points_data(api_source, period, points, workspace, watershed):
 
   print('Period', period, 'done')
   return response
+
+def get_new_warnings():
+    path = os.path.join(WORKSPACE_DIR, 'RT_discharge_allstations.csv')
+    cols = ['Latitude', 'Longitude', 'new_COMID', 'RT2y', 'RT5y', 'RT10y', 'RT25y', 'RT50y', 'RT100y']
+    periods_wp = pd.read_csv(path, usecols=cols)
+    periods_wp['rivid'] = periods_wp['new_COMID']
+
+
+    new_order = ['rivid', 'RT100y', 'RT50y', 'RT25y', 'RT10y', 'RT5y', 'RT2y', 'new_COMID', 'Latitude', 'Longitude']
+    periods_wp = periods_wp[new_order]
+
+    new_column_names = {'Latitude' : 'lat', 
+                'Longitude':'lon',
+                'new_COMID' : 'comid', 
+                'RT2y': 'return_period_2', 
+                'RT5y': 'return_period_5', 
+                'RT10y': 'return_period_10', 
+                'RT25y': 'return_period_25', 
+                'RT50y': 'return_period_50', 
+                'RT100y': 'return_period_100'}
+
+    periods_wp = periods_wp.rename(columns=new_column_names)
+
+    cols = ['lat', 'lon', 'comid']
+    df = periods_wp[cols].copy()
+
+    periods_wp = periods_wp.drop(columns = ['lat', 'lon'])
+
+    periods_list = [2,5,10,25,50,100]
+
+    df_wp = df.loc[df.index.repeat(len(periods_list))].reset_index(drop=True)
+    df_wp.insert(0, 'period', periods_list * len(df)) 
+    df_wp.sort_values(by='period', ascending=True, inplace=True)
+    df_wp.reset_index(drop=True, inplace=True)
+
+    # reach_ids_list = reach_pds['COMID'].tolist()
+    return df_wp,periods_wp
 
 def get_all_warning_points_data(api_source, watershed, workspace=WORKSPACE_DIR, warning_points=pd.DataFrame()):
   print('has cache', not warning_points.empty)
@@ -242,15 +279,15 @@ def get_all_warning_points_data(api_source, watershed, workspace=WORKSPACE_DIR, 
   print('Gathering additional data')
   with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
       results = executor.map(lambda args: get_warning_points_data(api_source, *args, workspace, watershed), args)
-      print(results)
-
+ 
   dataframes = []
   for result in results:
     df = pd.DataFrame(result, columns=['period', 'lat', 'lon', 'comid', 'flow_status', 'flow_peaks'])
     dataframes.append(df)
 
   result_df = pd.concat(dataframes)
-  result_df = result_df.drop(result_df[result_df['comid'] == 9107665.0].index)
+  del_ids = result_df.loc[result_df['flow_status'] == 'neutro', 'comid'].tolist()
+  del_ids.append(9107665.0)
+  result_df = result_df[~result_df['comid'].isin(del_ids)]
   result_df.set_index('period', inplace=True)
-
   return result_df

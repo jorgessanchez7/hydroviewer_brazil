@@ -38,6 +38,8 @@ const TEN_YEAR_WARNING_COLOR = [255,56,5];
 const FIVE_YEAR_WARNING_COLOR = [253,154,1];
 const TWO_YEAR_WARNING_COLOR = [254,240,1];
 const REGION_COLOR = [0,100,0];
+const NEUTRO_COLOR = [46,139,87]
+
 
 function warning_point_style(feature, color) {
     const layerIndex = observedLayers.length - (observedLayers.findIndex(({ layer }) => layer === feature) ?? observedLayers.length);
@@ -46,6 +48,7 @@ function warning_point_style(feature, color) {
     const peaks = feature.get('peaks');
     const alpha = peaks === 0 ? 1 : (peaks === 1 ? 0.5 : 0.1);
     const strokes = peaks === 0 ? 1 : (peaks === 2 ? 0.5 : 0.1);
+    
     const style = {
         text: new ol.style.Text({
             font: '14px Calibri,sans-serif',
@@ -65,6 +68,14 @@ function warning_point_style(feature, color) {
             fill: new ol.style.Fill({ color: Array.isArray(color) ? [ ...color, alpha] : color }),
             stroke: new ol.style.Stroke({ color: 'black', width: strokes }),
             radius: 10,
+            zIndex: layerIndex,
+        });
+    } else if (flow === 'neutro') {
+        color = NEUTRO_COLOR
+        style.image = new ol.style.Circle({
+            fill: new ol.style.Fill({ color: Array.isArray(color) ? [ ...color, alpha] : color }),
+            stroke: new ol.style.Stroke({ color: 'black', width: strokes }),
+            radius: 6,
             zIndex: layerIndex,
         });
     } else {

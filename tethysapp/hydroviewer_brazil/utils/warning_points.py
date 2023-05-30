@@ -164,9 +164,9 @@ def comid_flow(api_source, comid, current_period, next_period, workspace, waters
       flow_status = 'down'
   elif max_flow_avg > period_min:
     flow_status = 'up'  
-  elif (current_period == 'return_period_2') and (min_flow_avg < period_min) and (max_flow_avg < period_min):
-    flow_status = 'neutro'   
-
+  elif (min_flow_avg < period_min) and (max_flow_avg < period_min):
+    flow_status = 'neutro' 
+      
   return flow_status
 
 def get_warning_points_data(api_source, period, points, workspace, watershed):
@@ -181,10 +181,11 @@ def get_warning_points_data(api_source, period, points, workspace, watershed):
   response = []
 
   def request_point_info(point):
+    
     flow_0 = comid_flow(api_source, point[3], current_period, next_period, workspace, watershed, 0,4)
     flow_1 = comid_flow(api_source, point[3], current_period, next_period, workspace, watershed, 4,10)
     flow_2 = comid_flow(api_source, point[3], current_period, next_period, workspace, watershed, 10,16)
- 
+
     all = [flow_0, flow_1, flow_2]
     flow = None
     flow_h = None
@@ -209,8 +210,6 @@ def get_new_warnings():
     cols = ['Latitude', 'Longitude', 'new_COMID', 'RT2y', 'RT5y', 'RT10y', 'RT25y', 'RT50y', 'RT100y']
     periods_wp = pd.read_csv(path, usecols=cols)
     periods_wp['rivid'] = periods_wp['new_COMID']
-
-
     new_order = ['rivid', 'RT100y', 'RT50y', 'RT25y', 'RT10y', 'RT5y', 'RT2y', 'new_COMID', 'Latitude', 'Longitude']
     periods_wp = periods_wp[new_order]
 
@@ -224,12 +223,10 @@ def get_new_warnings():
                 'RT50y': 'return_period_50', 
                 'RT100y': 'return_period_100'}
 
-    periods_wp = periods_wp.rename(columns=new_column_names)
+    periods_wp.rename(columns=new_column_names, inplace=True)
 
-    cols = ['lat', 'lon', 'comid']
-    df = periods_wp[cols].copy()
-
-    periods_wp = periods_wp.drop(columns = ['lat', 'lon'])
+    df = periods_wp[['lat', 'lon', 'comid']].copy()
+    periods_wp.drop(columns=['lat', 'lon'], inplace=True)
 
     periods_list = [2,5,10,25,50,100]
 
@@ -238,7 +235,6 @@ def get_new_warnings():
     df_wp.sort_values(by='period', ascending=True, inplace=True)
     df_wp.reset_index(drop=True, inplace=True)
 
-    # reach_ids_list = reach_pds['COMID'].tolist()
     return df_wp,periods_wp
 
 def get_all_warning_points_data(api_source, watershed, workspace=WORKSPACE_DIR, warning_points=pd.DataFrame()):
@@ -286,8 +282,12 @@ def get_all_warning_points_data(api_source, watershed, workspace=WORKSPACE_DIR, 
     dataframes.append(df)
 
   result_df = pd.concat(dataframes)
-  del_ids = result_df.loc[result_df['flow_status'] == 'neutro', 'comid'].tolist()
-  del_ids.append(9107665.0)
-  result_df = result_df[~result_df['comid'].isin(del_ids)]
+  result_df = result_df.drop(result_df[result_df['comid'] == 9107665.0].index)
+
+  result_df.reset_index(drop=True, inplace=True)
+  result_df = result_df.drop(result_df[(result_df['flow_status'] == 'neutro')].index)
+  result_df = result_df.sort_values(['comid', 'period'], ascending=[True, True])
+  result_df = result_df.drop_duplicates(subset='comid', keep='last')
   result_df.set_index('period', inplace=True)
+
   return result_df

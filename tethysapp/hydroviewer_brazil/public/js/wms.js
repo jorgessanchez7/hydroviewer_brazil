@@ -70,15 +70,7 @@ function warning_point_style(feature, color) {
             radius: 10,
             zIndex: layerIndex,
         });
-    } else if (flow === 'neutro') {
-        color = NEUTRO_COLOR
-        style.image = new ol.style.Circle({
-            fill: new ol.style.Fill({ color: Array.isArray(color) ? [ ...color, alpha] : color }),
-            stroke: new ol.style.Stroke({ color: 'black', width: strokes }),
-            radius: 6,
-            zIndex: layerIndex,
-        });
-    } else {
+    } else if (flow === 'up' || flow === 'down'){
         style.image = new ol.style.RegularShape({
             fill: new ol.style.Fill({ color: Array.isArray(color) ? [ ...color, alpha] : color }),
             stroke: new ol.style.Stroke({ color: 'black', width: strokes }),

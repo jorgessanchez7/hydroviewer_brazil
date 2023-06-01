@@ -165,8 +165,8 @@ def comid_flow(api_source, comid, current_period, next_period, workspace, waters
   elif max_flow_avg > period_min:
     flow_status = 'up'  
   elif (min_flow_avg < period_min) and (max_flow_avg < period_min):
-    flow_status = 'neutro' 
-      
+    flow_status = 'neutro'
+
   return flow_status
 
 def get_warning_points_data(api_source, period, points, workspace, watershed):
@@ -285,6 +285,7 @@ def get_all_warning_points_data(api_source, watershed, workspace=WORKSPACE_DIR, 
   result_df = result_df.drop(result_df[result_df['comid'] == 9107665.0].index)
 
   result_df.reset_index(drop=True, inplace=True)
+  result_df['comid'] = result_df['comid'].astype(int)
   result_df = result_df.drop(result_df[(result_df['flow_status'] == 'neutro')].index)
   result_df = result_df.sort_values(['comid', 'period'], ascending=[True, True])
   result_df = result_df.drop_duplicates(subset='comid', keep='last')

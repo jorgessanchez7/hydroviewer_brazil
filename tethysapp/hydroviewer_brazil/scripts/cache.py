@@ -147,11 +147,11 @@ def create_cache():
   start = pd.to_datetime(stats.datetime[0]).iloc[0].strftime("%Y-%m-%d %H:%M:%S")
 
   cache_return_periods(ecmwf_wps, new_wp_periods)
-  catch_warning_points(wps_df)
-  cache_ensembles(wps_df)
-  cache_records(wps_df, start)
+  wp = catch_warning_points(wps_df)
+  cache_ensembles(wp)
+  cache_records(wp, start)
   cache_available_dates()
-  cache_historic_simulation(wps_df)
+  cache_historic_simulation(wp)
 
   print('Caches finished in:', time.time() - script_start, 's')
 

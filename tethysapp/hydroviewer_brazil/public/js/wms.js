@@ -109,7 +109,6 @@ function get_requestData (model, watershed, subbasin, comid, startdate){
           }, 5000);
       },
       success: function (data) {
-        console.log(data)
         get_time_series(model, watershed, subbasin, comid, startdate);
         get_historic_data(model, watershed, subbasin, comid, startdate);
         get_flow_duration_curve(model, watershed, subbasin, comid, startdate);
@@ -281,7 +280,7 @@ function view_watershed() {
                                     <Mark>
                                         <WellKnownName>square</WellKnownName>
                                         <Fill>
-                                            <CssParameter name="fill">#000099</CssParameter>
+                                            <CssParameter name="fill">#000000</CssParameter>
                                         </Fill>
                                     </Mark>
                                     <Size>6</Size>
@@ -545,7 +544,6 @@ function get_historic_data(model, watershed, subbasin, comid, startdate) {
         },
         error: console.log,
         success: function(data) {
-            console.log('success', data)
             if (!data.error) {
                 $('#his-view-file-loading').addClass('hidden');
                 $('#historical-chart').removeClass('hidden');
@@ -740,7 +738,6 @@ function get_discharge_info (stationcode, stationname, startdateobs, enddateobs)
                 $loading.addClass('hidden');
                 $('#observed-chart-Q').removeClass('hidden');
                 $('#observed-chart-Q').html(data);
-
                 //resize main graph
                 Plotly.Plots.resize($("#observed-chart-Q .js-plotly-plot")[0]);
 
@@ -941,37 +938,73 @@ function map_events() {
                 }
 
                 if (current_layer["H"]["source"]["i"]["LAYERS"] == "Brazil_Stations_RT") {
+                $.ajax({
+                    type: "GET",
+                    url: wms_url,
+                    dataType: 'json',
+                    success: function (result) {
+                        stationcode = result["features"][0]["properties"]["CodEstacao"];
+                        stationname = result["features"][0]["properties"]["NomeEstaca"];
+                        river = result["features"][0]["properties"]["NomeRio"]
+                        altitude = result["features"][0]["properties"]["Altitude"];
+                        locality = result["features"][0]["properties"]["Municipio_"];
+                        
+                        localization= result["features"][0]["geometry"]["coordinates"];
+  
+                        lon= result["features"][0]["geometry"]["coordinates"][0];
+                        lat= result["features"][0]["geometry"]["coordinates"][1];
+                               
+                        $("#station-name-custom").append('<b>Name:</b>'+stationname);
+                        $("#station-comid-custom").append('<b>Comid:</b>'+stationcode);
+                        $("#station-river-custom").append('<b>River:</b>'+river);
+                        $("#station-latitude-custom").append('<b>Latitude:</b>'+lat);
+                        $("#station-longitude-custom").append('<b>Longitude:</b>'+lon);
+                        $("#station-local-custom").append('<b>Locality:</b>'+locality);
+                        $("#station-altitude-custom").append('<b>altitude:</b>'+altitude);
 
-                        $("#obsgraph").modal('show');
-                        $('#observed-chart-Q').addClass('hidden');
-                        $('#observed-chart-WL').addClass('hidden');
-                        $('#obsdates').addClass('hidden');
-                        $('#observed-loading-Q').removeClass('hidden');
-                        $('#observed-loading-WL').removeClass('hidden');
-                        $("#station-info").empty()
-                        $('#download_observed_discharge').addClass('hidden');
-                        $('#download_sensor_discharge').addClass('hidden');
-                        $('#download_observed_waterlevel').addClass('hidden');
-                        $('#download_sensor_waterlevel').addClass('hidden');
+                    }
+                });
+                $("#info-Stations").modal('hide');
+                $("#station-name-custom").empty()
+                $("#station-comid-custom").empty()
+                $("#station-river-custom").empty()
+                $("#station-latitude-custom").empty()
+                $("#station-longitude-custom").empty()
+                $("#station-altitude-custom").empty()
+                $("#station-local-custom").empty()
+                $("#info-Stations").modal('show');
+                $('#info-continue').off('click').on('click', () => {
+                    $("#info-Stations").modal('hide');
+                    $("#obsgraph").modal('show');
+                    $('#observed-chart-Q').addClass('hidden');
+                    $('#observed-chart-WL').addClass('hidden');
+                    $('#obsdates').addClass('hidden');
+                    $('#observed-loading-Q').removeClass('hidden');
+                    $('#observed-loading-WL').removeClass('hidden');
+                    $("#station-info").empty()
+                    $('#download_observed_discharge').addClass('hidden');
+                    $('#download_sensor_discharge').addClass('hidden');
+                    $('#download_observed_waterlevel').addClass('hidden');
+                    $('#download_sensor_waterlevel').addClass('hidden');
 
-                        $.ajax({
-                            type: "GET",
-                            url: wms_url,
-                            dataType: 'json',
-                            success: function (result) {
-                                stationcode = result["features"][0]["properties"]["CodEstacao"];
-                                stationname = result["features"][0]["properties"]["NomeEstaca"];
-                                $('#obsdates').removeClass('hidden');
-                                var startdateobs = $('#startdateobs').val();
-                                var enddateobs = $('#enddateobs').val();
-                                $("#station-info").append('<h3>Current Station: '+ stationname + '</h3><h5>Station Code: '+ stationcode);
-                                get_discharge_info (stationcode, stationname, startdateobs, enddateobs);
-                                get_waterlevel_info (stationcode, stationname, startdateobs, enddateobs);
+                    $.ajax({
+                        type: "GET",
+                        url: wms_url,
+                        dataType: 'json',
+                        success: function (result) {
+                            stationcode = result["features"][0]["properties"]["CodEstacao"];
+                            stationname = result["features"][0]["properties"]["NomeEstaca"];
+                            $('#obsdates').removeClass('hidden');
+                            var startdateobs = $('#startdateobs').val();
+                            var enddateobs = $('#enddateobs').val();
+                            $("#station-info").append('<h5>Current Station: '+ stationname + '</h5><h5>Station Code: '+ stationcode);
+                            get_discharge_info (stationcode, stationname, startdateobs, enddateobs);
+                            get_waterlevel_info (stationcode, stationname, startdateobs, enddateobs);
 
-                            }
-                        });
-
-                }
+                        }
+                    });
+                })
+            }
 
                 //if (wms_url) {
                 else {

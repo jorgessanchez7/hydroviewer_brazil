@@ -277,3 +277,16 @@
   font-size:0.8rem !important;
   color: black;
 }
+
+#panel-station-information {
+  font-size: 10px;
+  text-transform: capitalize;
+}
+.row-station {
+  padding-top: 4px;
+  padding-bottom: 3px;
+  text-transform: capitalize;
+}
+#station-info{
+  text-transform: capitalize;
+}

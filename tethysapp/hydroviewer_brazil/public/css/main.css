@@ -208,7 +208,11 @@
 }
 
 .obslogos {
-  width: 40%;
+  width: 20%;
+  padding: 0 5px 0 5px;
+}
+.figs {
+  width: 100%;
   padding: 0 5px 0 5px;
 }
 .datepicker {
@@ -227,3 +231,4 @@
     width: 100%;
     height: 100%;
 }
+

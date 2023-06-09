@@ -779,17 +779,19 @@ const regionsStyle = () => {
     }
  });
 
+  
  $(document).ready(() => {
     $('#warning .modal-dialog').draggable();
     $('#hydrology .modal-dialog').draggable();
     $('#layers-panel').draggable();
     $('#graph .modal-content').resizable();
     $('#graph .modal-dialog').draggable({ handle: ".modal-header" })
-
+    $('#obsgraph .modal-content').resizable();
+    $('#obsgraph .modal-dialog').draggable({ handle: ".modal-header" })
     $('#region .modal-dialog').draggable();
     $('#region2 .modal-dialog').draggable();
     $('#region3 .modal-dialog').draggable();
-  
+    
     buildWarningPoints();
     buildHydrology();
     buildRegions();

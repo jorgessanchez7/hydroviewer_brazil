@@ -101,83 +101,116 @@
 {% endblock %}
 
 {% block after_app_content %}
+<!-- info Stations -->
+<div class="modal fade" id="info-Stations" tabindex="-1" role="dialog" aria-labelledby="about-streams-modal-label">
+  <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="about-info-stations-modal-label"><h3>Stations</h3>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row" id="panel-station-information">
+          <div class="col">
+            <div class="row-station" id="station-name-custom"></div>
+            <div class="row-station" id="station-comid-custom"></div>
+            <div class="row-station" id="station-river-custom"></div>
+            <div class="row-station" id="station-latitude-custom"></div>
+            <div class="row-station" id="station-longitude-custom"></div>
+            <div class="row-station" id="station-altitude-custom"></div>
+            <div class="row-station" id="station-local-custom"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div class="col text-center">
+        <!-- <button id="info-close"type="button" class="btn btn-default" data-bs-dismiss="modal">Close</button> -->
+        <button id="info-continue" type="button" class="btn btn-outline-info">Visualize the data</button>
+      </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!----Observed Data ----->
 <div class="modal fade" id="obsgraph" tabindex="-1" role="dialog" aria-labelledby="about-modal-label">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                <div class="row">
-                    <div id="station-info" class="col-md-8"></div>
-                    <div class="col-md-4">
-                        <div align="right">
-                          <img class="obslogos" src="{% static base_name|add:'/images/byu_logo.png' %}">
-                          <img class="obslogos" src="{% static base_name|add:'/images/ANA_Logo.jpeg' %}">
-                          <img class="obslogos" src="{% static base_name|add:'/images/logo_cemaden.jpg' %}">
-                          <img class="obslogos" src="{% static base_name|add:'/images/Servir_logo.jpeg' %}">
-                        </div>
-                    </div>
-                </div>
-                <div id="obsdates">
-                    <div id="startdatepicker">
-                        <!--{% gizmo startdateobs %}-->
-                    </div>
-                    <div id="enddatepicker">
-                        <!--{% gizmo enddateobs %}-->
-                    </div>
-                </div>
-                <div id="interaction"></div>
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+          <div class="row">
+              <div id="station-info" class="col-md-8"></div>
+              <div class="col-md-4">
+                  <div align="right">
+                    <img class="obslogos" src="{% static base_name|add:'/images/byu_logo.png' %}">
+                    <img class="obslogos" src="{% static base_name|add:'/images/ANA_Logo.jpeg' %}">
+                    <img class="obslogos" src="{% static base_name|add:'/images/logo_cemaden.jpg' %}">
+                    <img class="obslogos" src="{% static base_name|add:'/images/Servir_logo.jpeg' %}">
+                  </div>
+              </div>
+           </div>
+           <div id="obsdates">
+              <div id="startdatepicker">
+                  <!--{% gizmo startdateobs %}-->
+              </div>
+              <div id="enddatepicker">
+                  <!--{% gizmo enddateobs %}-->
+              </div>
             </div>
-            <div class="modal-body">
-                <!-- Nav tabs -->
-                <ul class="nav nav-tabs" role="tablist">
-                  <li role="presentation" class="active"><a id="observedQ_tab_link" href="#observedQ" aria-controls="observedQ" role="tab" data-bs-toggle="tab">Observed Discharge</a></li>
-                  <li role="presentation"><a id="observedWL_tab_link" href="#observedWL" aria-controls="observedWL" role="tab" data-bs-toggle="tab">Observed Water Level</a></li>
-                  <li role="presentation"><a href="#download_data" aria-controls="download_data" role="tab" data-bs-toggle="tab">Download</a></li>
-                </ul>
-
-                <!-- Tab panes -->
-                <div class="tab-content">
-                    <div role="tabpanel" class="tab-pane active" id="observedQ">
-                        <div class="panel panel-default">
-                            <div class="panel-body">
-                                <div class="flex-container-row"><img id="observed-loading-Q" class="view-file hidden" src="{% static base_name|add:'/images/loader.gif' %}" /></div>
-                                <div id="observed-chart-Q"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div role="tabpanel" class="tab-pane" id="observedWL"> <!-- /.tab-pane -->
-                        <div class="panel panel-default">
-                            <div class="panel-body">
-                                <div class="flex-container-row"><img id="observed-loading-WL" class="view-file hidden" src="{% static base_name|add:'/images/loader.gif' %}" /></div>
-                                <div id="observed-chart-WL"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div role="tabpanel" class="tab-pane" id="download_data">
-                        <div class="panel panel-default">
-                            <div class="panel-body">
-                                <h6>Download Observed Discharge Data</h6>
-                                <div id="download_observed_discharge" class="btn-group hidden long-term-select" role="group">
-                                    <a class="btn btn-success" role="button" id="submit-download-observed-discharge">
-                                        <span class="glyphicon glyphicon-play"></span> Download Observed Discharge
-                                    </a>
-                                </div>
-                                <h6>Download Observed Water Level Data</h6>
-                                <div id="download_observed_waterlevel" class="btn-group hidden long-term-select" role="group">
-                                    <a class="btn btn-success" role="button" id="submit-download-observed-waterlevel">
-                                        <span class="glyphicon glyphicon-play"></span> Download Observed Water Level
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        <div id="info" class="hidden"></div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-bs-dismiss="modal">Close</button>
+            <div id="interaction"></div>
         </div>
+        <div class="modal-body overflow-auto">
+          <!-- Nav tabs -->
+            <ul class="nav nav-tabs" role="tablist">
+              <li role="presentation" class="nav-item">
+                <a class="nav-link" id="observedQ_tab_link" href="#observedQ" aria-controls="observedQ" role="tab" data-bs-toggle="tab">Observed Discharge</a></li>
+              <li role="presentation" class="nav-item">
+                <a class="nav-link" id="observedWL_tab_link" href="#observedWL" aria-controls="observedWL" role="tab" data-bs-toggle="tab">Observed Water Level</a></li>
+              <li role="presentation" class="nav-item">
+                <a class="nav-link" href="#download_data" aria-controls="download_data" role="tab" data-bs-toggle="tab">Download</a></li>
+            </ul>
+
+            <!-- Tab panes -->
+            <div class="tab-content">
+                <div role="tabpanel" class="tab-pane active" id="observedQ">
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <div class="flex-container-row"><img id="observed-loading-Q" class="view-file hidden" src="{% static base_name|add:'/images/loader.gif' %}" /></div>
+                            <div id="observed-chart-Q"></div>
+                        </div>
+                    </div>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="observedWL"> <!-- /.tab-pane -->
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <div class="flex-container-row"><img id="observed-loading-WL" class="view-file hidden" src="{% static base_name|add:'/images/loader.gif' %}" /></div>
+                            <div id="observed-chart-WL"></div>
+                        </div>
+                    </div>
+                </div>
+                <div role="tabpanel" class="tab-pane" id="download_data">
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <h6>Download Observed Discharge Data</h6>
+                            <div id="download_observed_discharge" class="btn-group hidden long-term-select" role="group">
+                                <a class="btn btn-success" role="button" id="submit-download-observed-discharge">
+                                    <span class="glyphicon glyphicon-play"></span> Download Observed Discharge
+                                </a>
+                            </div>
+                            <h6>Download Observed Water Level Data</h6>
+                            <div id="download_observed_waterlevel" class="btn-group hidden long-term-select" role="group">
+                                <a class="btn btn-success" role="button" id="submit-download-observed-waterlevel">
+                                    <span class="glyphicon glyphicon-play"></span> Download Observed Water Level
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="info" class="hidden"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-bs-dismiss="modal">Close</button>
+          </div>
         </div>
     </div>
 </div>
@@ -315,7 +348,6 @@
   </div>
 </div>
 
-
 <!-- About Streams -->
 <div class="modal fade" id="about-Streams" tabindex="-1" role="dialog" aria-labelledby="about-streams-modal-label">
   <div class="modal-dialog modal-lg" role="document">
@@ -325,6 +357,8 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
+        <img class="figs" src="{% static base_name|add:'/images/streams.png' %}">
+     
         <h6>Streams refer to the watercourses or rivers that are displayed on the map. HydroViewer is a tool that allows you to visualize and analyze hydrological data, such as water levels, streamflows, and other variables related to rivers, streams, and watersheds.</h6>
 
         <h6> When using HydroViewer, you can select a particular watershed or region and view the hydrological data associated with it. The streams are the main elements on the map, representing the watercourses where the hydrological data is being displayed.</h6>
@@ -349,6 +383,8 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
+        <img class="figs" src="{% static base_name|add:'/images/stations.png' %}">
+     
         <h6>Stations refer to specific monitoring locations or measurement points where hydrological data is collected. These stations are typically established along rivers, streams, or other water bodies to gather information such as water level, streamflow, rainfall, water quality, and other relevant parameters.</h6>
 
         <h6>HydroViewer allows you to visualize and analyze hydrological data from various monitoring stations. Each station is represented on the map with a marker or a symbol, indicating its geographical location. By selecting a station or multiple stations, you can view the associated hydrological data and analyze its temporal and spatial patterns.</h6>
@@ -373,7 +409,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <img class="obslogos" src="{% static base_name|add:'/images/warning.png' %}">
+        <img class="figs" src="{% static base_name|add:'/images/warnings.png' %}">
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-bs-dismiss="modal">Close</button>
@@ -391,6 +427,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
+        <img class="figs" src="{% static base_name|add:'/images/warnings.png' %}">
         <h6>"Ottobacia" is an Italian term that translates to "catchment area" or "drainage basin" in English. It refers to a geographical area of land where all the surface water from rainfall</h6>
         <h6>The concept of ottobacia is important in hydrology and water resource management, as the characteristics of the ottobacia, including its size, shape, topography, and land cover, influence the flow of water, sediment transport, and the overall water balance within a particular watershed. </h6>
         <h6>The term "level" in the context of ottobacias or drainage basins typically refers to the hierarchical organization of basins based on their size or position within a larger river network. These levels are often referred to as "stream orders" or "strahler stream orders."</h6>

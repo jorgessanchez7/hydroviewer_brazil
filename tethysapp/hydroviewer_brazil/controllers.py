@@ -36,6 +36,7 @@ base_name = __package__.split('.')[-1]
 base_url = base_name.replace('_', '-')
 cache_enabled = True
 
+
 def set_custom_setting(defaultModelName, defaultWSName):
 	from tethys_apps.models import TethysApp
 	db_app = TethysApp.objects.get(package=app.package)
@@ -155,7 +156,6 @@ def ecmwf(request):
 
 	res2 = requests.get(my_geoserver + '/rest/workspaces/' + app.get_custom_setting('workspace') +
 						'/featuretypes.json', auth=HTTPBasicAuth(geos_username, geos_password), verify=False)
-
 	for i in range(len(json.loads(res2.content)['featureTypes']['featureType'])):
 		raw_feature = json.loads(res2.content)['featureTypes']['featureType'][i]['name']
 		if 'drainage_line' in raw_feature and any(
@@ -315,6 +315,7 @@ def get_warning_points(request, app_workspace):
 	if get_data['model'] == 'ECMWF-RAPID':
 		watershed = get_data['watershed']
 		cache_path = os.path.join(app_workspace.path, f'warning_points_{ watershed }.csv')
+		
 		if os.path.exists(cache_path):
 			df = pd.read_csv(cache_path)
 			points = [c for c in zip(df['period'], df['comid'])]
@@ -1073,21 +1074,21 @@ def get_discharge_data(request):
 		streamflow_df.set_index('Datetime', inplace=True)
 		streamflow_df.index = pd.to_datetime(streamflow_df.index)
 		streamflow_df.dropna(inplace=True)
+		streamflow_df['Streamflow (m3/s)'] = streamflow_df['Streamflow (m3/s)'].astype(float)
 
 		observed_Q = go.Scatter(
 			x=streamflow_df.index,
 			y=streamflow_df.iloc[:, 0].values,
-			name='Observed'
-		)
+			name='Observed')
 
 		layout = go.Layout(title='Observed Discharge',
 						   xaxis=dict(
 							   title='Dates', ),
 						   yaxis=dict(
 							   title='Discharge (m<sup>3</sup>/s)',
-							   autorange=True),
+							   nticks=10),
 						   showlegend=True)
-
+		
 		chart_obj = PlotlyView(
 			go.Figure(data=[observed_Q],
 					  layout=layout)
@@ -1253,6 +1254,8 @@ def get_waterlevel_data(request):
 		waterLevel_df.set_index('Datetime', inplace=True)
 		waterLevel_df.index = pd.to_datetime(waterLevel_df.index)
 		waterLevel_df.dropna(inplace=True)
+		waterLevel_df['Water Level (m)'] = waterLevel_df['Water Level (m)'].astype(float)
+
 
 		observed_WL = go.Scatter(
 			x=waterLevel_df.index,
@@ -1265,7 +1268,7 @@ def get_waterlevel_data(request):
 							   title='Dates', ),
 						   yaxis=dict(
 							   title='Water Level (m)',
-							   autorange=True),
+							   nticks=10),
 						   showlegend=True)
 
 		chart_obj = PlotlyView(
@@ -1390,6 +1393,7 @@ def probabilities(points, watershed, workspace_path):
 		ensembles.index = pd.to_datetime(ensembles.index).tz_localize(None)
 		rperiods = rperiods_df[rperiods_df.index == int(comid)]
 		uniqueday = [ startdate, enddate ]
+
 		# get the return periods for the stream reach
 		rp2 = rperiods['return_period_2'].values
 		rp5 = rperiods['return_period_5'].values
@@ -1399,6 +1403,7 @@ def probabilities(points, watershed, workspace_path):
 		rp100 = rperiods['return_period_100'].values
 		# fill the lists of things used as context in rendering the template
 		tmp = ensembles.loc[uniqueday[0]:uniqueday[1]]
+		
 		result = 0
 
 		for column in tmp:
@@ -1422,6 +1427,7 @@ def probabilities(points, watershed, workspace_path):
 						result += 1
 			except:
 				pass
+
 		return round(result * 100 / 52)
 
 	results = []
@@ -1430,4 +1436,3 @@ def probabilities(points, watershed, workspace_path):
 		results = executor.map(handle, points)
 
 	return list(results)
-

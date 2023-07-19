@@ -40,6 +40,16 @@ const TWO_YEAR_WARNING_COLOR = [254,240,1];
 const REGION_COLOR = [0,100,0];
 const NEUTRO_COLOR = [46,139,87]
 
+const stationsPopupId = 'info-Stations-popup';
+
+const overlay = new ol.Overlay({
+    element: document.getElementById(stationsPopupId),
+    autoPan: {
+      animation: {
+        duration: 250,
+      },
+    },
+});
 
 function warning_point_style(feature, color) {
     const layerIndex = observedLayers.length - (observedLayers.findIndex(({ layer }) => layer === feature) ?? observedLayers.length);
@@ -227,11 +237,12 @@ function init_map() {
             minZoom: 2,
             maxZoom: 18,
         }),
+        overlays: [overlay],
         layers: layers
     });
 
     default_extent = map.getView().calculateExtent(map.getSize());
-
+    map.getView().setZoom(28);
 }
 
 function watershed_layer_name() {
@@ -276,15 +287,13 @@ function view_watershed() {
                     <FeatureTypeStyle>
                         <Rule>
                             <PointSymbolizer>
-                                <Graphic>
-                                    <Mark>
-                                        <WellKnownName>square</WellKnownName>
-                                        <Fill>
-                                            <CssParameter name="fill">#000000</CssParameter>
-                                        </Fill>
-                                    </Mark>
-                                    <Size>6</Size>
-                                </Graphic>
+                            <Graphic>
+                                <ExternalGraphic>
+                                    <OnlineResource xlink:type="simple" xlink:href="https://cemaden.geoglows.org/static/historical_validation_tool_brazil/images/icon_popup/0.svg"/>
+                                    <Format>image/svg+xml</Format>
+                                </ExternalGraphic>
+                                <Size>16</Size>
+                            </Graphic>
                            </PointSymbolizer>
                          </Rule>
                     </FeatureTypeStyle>
@@ -972,9 +981,21 @@ function map_events() {
                 $("#station-longitude-custom").empty()
                 $("#station-altitude-custom").empty()
                 $("#station-local-custom").empty()
-                $("#info-Stations").modal('show');
+
+                const closerOverlayButton = document.getElementById('popup-closer');
+
+                if (closerOverlayButton) {
+                    closerOverlayButton.onclick = () => {
+                        overlay.setPosition(undefined);
+                    };
+                }
+
+                const coordinate = evt.coordinate;
+                overlay.setPosition(coordinate);
+
                 $('#info-continue').off('click').on('click', () => {
-                    $("#info-Stations").modal('hide');
+                    overlay.setPosition(undefined);
+
                     $("#obsgraph").modal('show');
                     $('#observed-chart-Q').addClass('hidden');
                     $('#observed-chart-WL').addClass('hidden');

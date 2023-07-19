@@ -102,7 +102,25 @@
 
 {% block after_app_content %}
 <!-- info Stations -->
-<div class="modal fade" id="info-Stations" tabindex="-1" role="dialog" aria-labelledby="about-streams-modal-label">
+<div class="ol-popup" id="info-Stations-popup" tabindex="-1" role="dialog" aria-labelledby="about-streams-modal-label">
+  <span type="button" id="popup-closer" class="ol-popup-closer"></span>
+
+  <div class="row" id="panel-station-information">
+    <div class="col">
+      <div class="row-station" id="station-name-custom"></div>
+      <div class="row-station" id="station-comid-custom"></div>
+      <div class="row-station" id="station-river-custom"></div>
+      <div class="row-station" id="station-latitude-custom"></div>
+      <div class="row-station" id="station-longitude-custom"></div>
+      <div class="row-station" id="station-altitude-custom"></div>
+      <div class="row-station" id="station-local-custom"></div>
+    </div>
+  </div>
+
+  <button id="info-continue" type="button" class="btn btn-outline-info">Visualize the data</button>
+</div>
+
+<!-- <div class="modal fade" id="info-Stations" tabindex="-1" role="dialog" aria-labelledby="about-streams-modal-label">
   <div class="modal-dialog modal-sm" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -130,7 +148,7 @@
       </div>
     </div>
   </div>
-</div>
+</div> -->
 
 <!----Observed Data ----->
 <div class="modal fade" id="obsgraph" tabindex="-1" role="dialog" aria-labelledby="about-modal-label">

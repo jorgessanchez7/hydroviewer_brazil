@@ -147,7 +147,7 @@ class Hydroviewer(TethysAppBase):
                 type=CustomSetting.TYPE_STRING,
                 description='lon,lat,zoom_level',
                 required=True,
-                default='-75,-10,3',
+                default='-52,-15,2',
             ),
             CustomSetting(
                 name='default_model_type',

@@ -52,11 +52,32 @@
   display: flex;
   justify-content: space-between;
   padding: 8px;
+  background-color: transparent;
+  align-items: center;
+  opacity: 1;
+}
+
+.common-option-wrapper.loading {
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.5;
+}
+
+.common-option-wrapper .fa {
+  display: none;
+}
+
+.common-option-wrapper .fa.loading {
+  width: 16px;
+  height: 16px;
+  margin-left: 8px;
+  display: flex;
 }
 
 .common-option-label {
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 8px;
 }
 
 /* Warning*/
@@ -213,68 +234,90 @@
   display: none;
 }
 
-#observed-layers {
+#observed-layers-forecast {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-#observed-layers .observed-layer-wrapper {
+#observed-layers-others {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+#observed-layers-forecast.invisible {
+  margin: 0;
+  padding: 0;
+  display: none;
+}
+
+#observed-layers-forecast {
+  border-bottom: 1px solid lightgray;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+}
+
+.observed-layer-wrapper {
   display: flex;
   justify-content: space-between;
 }
 
-#observed-layers .observed-layer-wrapper .observed-layer-title {
+.observed-layer-wrapper .observed-layer-title {
   font-weight: bold;
   font-size: 14px;
 }
 
-#observed-layers .observed-layer-wrapper .observed-layer-controls .observed-layer-control {
+.observed-layer-wrapper .observed-layer-controls .observed-layer-control {
   display: flex;
   align-items: center;
   justify-content: center;
   fill: #BBB;
 }
 
-#observed-layers .observed-layer-wrapper .observed-layer-controls .observed-layer-control:hover {
+.observed-layer-wrapper .observed-layer-controls .observed-layer-control:hover {
   fill: #777;
   cursor: pointer;
 }
 
-#observed-layers .observed-layer-wrapper .observed-layer-controls .observed-layer-control svg {
+.observed-layer-wrapper .observed-layer-controls .observed-layer-control svg {
   height: 20px;
   width: 20px;
 }
 
-#observed-layers .observed-layer-wrapper:first-child .move-up {
+.observed-layer-wrapper:first-child .move-up {
   pointer-events: none;
   fill: #DDD;
 }
 
-#observed-layers .observed-layer-wrapper:last-child .move-down {
+.observed-layer-wrapper:last-child .move-down {
   pointer-events: none;
   fill: #DDD;
 }
 
-#observed-layers .observed-layer-wrapper .observed-layer-controls {
+.observed-layer-wrapper .observed-layer-controls {
   display: flex;
   gap: 4px;
 }
 
-.toggle-switchy > input:not(:checked) + .toggle {
-  background:#DDD !important;
+.toggle-switchy {
+  margin-left: 16px;
 }
 
-.toggle-switchy > input:not(:checked) + .toggle > .switch {
-  border-color: #DDD !important ;
+.toggle-switchy>input:not(:checked)+.toggle {
+  background: #DDD !important;
 }
 
-.toggle-switchy[data-size='sm'] > input + .toggle:before {
-  font-size:0.8rem !important;
+.toggle-switchy>input:not(:checked)+.toggle>.switch {
+  border-color: #DDD !important;
 }
 
-.toggle-switchy[data-size='sm'] > input + .toggle:after {
-  font-size:0.8rem !important;
+.toggle-switchy[data-size='sm']>input+.toggle:before {
+  font-size: 0.8rem !important;
+}
+
+.toggle-switchy[data-size='sm']>input+.toggle:after {
+  font-size: 0.8rem !important;
   color: black;
 }
 
@@ -282,19 +325,27 @@
   font-size: 10px;
   text-transform: capitalize;
 }
+
 .row-station {
   padding-top: 4px;
   padding-bottom: 3px;
   text-transform: capitalize;
 }
-#station-info{
-  text-transform: capitalize;
+
+#station-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#station-info p {
+  margin: 0;
 }
 
 .ol-popup {
   position: absolute;
   background-color: white;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
   padding: 15px;
   border-radius: 10px;
   border: 1px solid #cccccc;
@@ -307,7 +358,8 @@
   gap: 4px;
 }
 
-.ol-popup:after, .ol-popup:before {
+.ol-popup:after,
+.ol-popup:before {
   top: 100%;
   border: solid transparent;
   content: " ";
@@ -344,4 +396,31 @@
 
 .ol-popup button {
   align-self: center;
+}
+
+.station-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 16px;
+}
+
+.station-popup p {
+  padding: 0;
+  margin: 0 !important;
+}
+
+.station-popup button {
+  flex: 1;
+  background-color: transparent;
+  border: 1px solid var(--app-primary-color, '#7ec1f7');
+  color: var(--app-primary-color, '#7ec1f7');
+  font-size: 18px;
+  border-radius: 16px;
+  padding: 8px 16px;
+}
+
+.station-popup button:hover {
+  background-color: var(--app-primary-color, '#7ec1f7');
+  color: white;
 }

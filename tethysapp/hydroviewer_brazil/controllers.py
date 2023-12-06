@@ -32,23 +32,25 @@ from .utils import warning_points
 from .app import Hydroviewer as app
 from dateutil.relativedelta import relativedelta
 
+# Base
+import io
+import os
+from dotenv import load_dotenv
+
+#mongDB
+from pymongo import MongoClient
+
+####################################################################################################
+##                                       STATUS VARIABLES                                         ##
+####################################################################################################
+
 base_name = __package__.split('.')[-1]
 base_url = base_name.replace('_', '-')
 cache_enabled = True
 
-
-def set_custom_setting(defaultModelName, defaultWSName):
-	from tethys_apps.models import TethysApp
-	db_app = TethysApp.objects.get(package=app.package)
-	custom_settings = db_app.custom_settings
-
-	db_setting = db_app.custom_settings.get(name='default_model_type')
-	db_setting.value = defaultModelName
-	db_setting.save()
-
-	db_setting = db_app.custom_settings.get(name='default_watershed_name')
-	db_setting.value = defaultWSName
-	db_setting.save()
+# Import enviromental variables 
+load_dotenv()
+MONGODB_URI = os.getenv('MONGODB_URI')
 
 @controller(name='home', url=base_url)
 def home(request):
@@ -103,9 +105,7 @@ def get_popup_response(request):
 	f3 = open(ensemble_data_path_file, 'w')
 	f3.close()
 
-	return_obj = {}
-
-	print("finished get_popup_response")
+	# print("finished get_popup_response")
 
 	return JsonResponse({})
 
@@ -1008,73 +1008,73 @@ def forecastpercent(request, app_workspace):
 
 @controller(name='get-discharge-data', url='get-discharge-data')
 def get_discharge_data(request):
-	"""
-	Get data from fews stations
-	"""
+    
 	get_data = request.GET
 
 	try:
-
-		codEstacion = get_data['stationcode']
+		stationCode = get_data['stationCode']
 		# YYYY/MM/DD
 
-		tz = pytz.timezone('Brazil/East')
-		hoy = dt.datetime.now(tz)
-		ini_date = hoy - relativedelta(months=7)
+		timezone = pytz.timezone('Brazil/East')
+		currentDate = dt.datetime.now(timezone)
+		startDate = currentDate - relativedelta(months=7)
 
-		anyo = hoy.year
-		mes = hoy.month
-		dia = hoy.day
+		year = currentDate.year
+		month = currentDate.month
+		day = currentDate.day
 
-		if dia < 10:
-			DD = '0' + str(dia)
+		if day < 10:
+			DD = '0' + str(day)
 		else:
-			DD = str(dia)
+			DD = str(day)
 
-		if mes < 10:
-			MM = '0' + str(mes)
+		if month < 10:
+			MM = '0' + str(month)
 		else:
-			MM = str(mes)
+			MM = str(month)
 
-		YYYY = str(anyo)
+		YYYY = str(year)
 
-		ini_anyo = ini_date.year
-		ini_mes = ini_date.month
-		ini_dia = ini_date.day
+		startYear = startDate.year
+		startMonth = startDate.month
+		startDay = startDate.day
 
-		if ini_dia < 10:
-			ini_DD = '0' + str(ini_dia)
+		if startDay < 10:
+			ini_DD = '0' + str(startDay)
 		else:
-			ini_DD = str(ini_dia)
+			ini_DD = str(startDay)
 
-		if ini_mes < 10:
-			ini_MM = '0' + str(ini_mes)
+		if startMonth < 10:
+			ini_MM = '0' + str(startMonth)
 		else:
-			ini_MM = str(ini_mes)
+			ini_MM = str(startMonth)
 
-		ini_YYYY = str(ini_anyo)
+		ini_YYYY = str(startYear)
 
-		url = 'http://telemetriaws1.ana.gov.br/ServiceANA.asmx/DadosHidrometeorologicos?codEstacao={0}&DataInicio={1}/{2}/{3}&DataFim={4}/{5}/{6}'.format(codEstacion, ini_DD, ini_MM, ini_YYYY, DD, MM, YYYY)
-		datos = requests.get(url).content
-		sites_dict = xmltodict.parse(datos)
+		url = 'http://telemetriaws1.ana.gov.br/ServiceANA.asmx/DadosHidrometeorologicos?codEstacao={0}&DataInicio={1}/{2}/{3}&DataFim={4}/{5}/{6}'.format(stationCode, ini_DD, ini_MM, ini_YYYY, DD, MM, YYYY)
+		print(url)
+		data = requests.get(url).content
+		sites_dict = xmltodict.parse(data)
 		sites_json_object = json.dumps(sites_dict)
 		sites_json = json.loads(sites_json_object)
 
-		datos_c = sites_json["DataTable"]["diffgr:diffgram"]["DocumentElement"]["DadosHidrometereologicos"]
+		hidro_data = sites_json["DataTable"]["diffgr:diffgram"]["DocumentElement"]["DadosHidrometereologicos"]
 
-		list_val_vazao = []
-		list_date_vazao = []
+		discharge_values = []
+		discharge_dates = []
 
-		for dat in datos_c:
-			list_val_vazao.append(dat["Vazao"])
-			list_date_vazao.append(dat["DataHora"])
+		for dat in hidro_data:
+			discharge_values.append(dat["Vazao"])
+			discharge_dates.append(dat["DataHora"])
 
-		pairs = [list(a) for a in zip(list_date_vazao, list_val_vazao)]
+		pairs = [list(a) for a in zip(discharge_dates, discharge_values)]
 		streamflow_df = pd.DataFrame(pairs, columns=['Datetime', 'Streamflow (m3/s)'])
 		streamflow_df.set_index('Datetime', inplace=True)
 		streamflow_df.index = pd.to_datetime(streamflow_df.index)
 		streamflow_df.dropna(inplace=True)
 		streamflow_df['Streamflow (m3/s)'] = streamflow_df['Streamflow (m3/s)'].astype(float)
+
+		# print(streamflow_df)
 
 		observed_Q = go.Scatter(
 			x=streamflow_df.index,
@@ -1185,71 +1185,123 @@ def get_observed_discharge_csv(request):
 		print(str(e))
 		return JsonResponse({'error': 'An unknown error occurred while retrieving the Discharge Data.'})
 
-@controller(name='get-waterlevel-data', url='get-waterlevel-data')
-def get_waterlevel_data(request):
-	"""
-	Get data from telemetric stations
-	"""
+@controller(name='get-historical-observed-discharge-csv', url='get-historical-observed-discharge-csv')
+def get_historical_observed_discharge_csv(request):
 	get_data = request.GET
 
 	try:
+		stationCode = get_data['stationcode']
+		stationName = get_data['stationname']
+		
+		client = MongoClient(MONGODB_URI)
+        
+		database = client["hydroviewer"]
 
-		codEstacion = get_data['stationcode']
+		collection = database["stations"]
+
+		get_data = request.GET
+        
+		cursor = list(collection.find({"_id": stationCode}))
+        
+		if stationCode:
+			record = collection.find_one({"_id": stationCode})
+            
+			if record and len(cursor) > 0:
+				discharge_values = record["Qobs"]
+				discharge_dates = record["Date"]
+
+				pairs = [list(a) for a in zip(discharge_dates, discharge_values)]
+				streamflow_df = pd.DataFrame(pairs, columns=['Datetime', 'Streamflow (m3/s)'])
+				streamflow_df.set_index('Datetime', inplace=True)
+				streamflow_df.index = pd.to_datetime(streamflow_df.index)
+				streamflow_df.dropna(inplace=True)
+
+				response = HttpResponse(content_type='text/csv')
+				response['Content-Disposition'] = 'attachment; filename=observed_streamflow_{0}_{1}.csv'.format(stationCode, stationName)
+
+				streamflow_df.to_csv(encoding='utf-8', header=True, path_or_buf=response)
+
+				return response
+
+			else:
+				return HttpResponse("No data found for the provided station code.")
+		else:
+			return HttpResponse("Please provide a valid station code.")
+
+	except Exception as e:
+		print(str(e))
+		return JsonResponse({'error': 'An unknown error occurred while retrieving the Discharge Data.'})
+
+	except pymongo.errors.PyMongoError as e:
+        # Tratar exceção do MongoDB, se necessário
+		return HttpResponse(f"An error occurred: {e}")
+    
+	finally:
+        # Fechar a conexão com o MongoDB
+		client.close()
+
+@controller(name='get-waterlevel-data', url='get-waterlevel-data')
+def get_waterlevel_data(request):
+
+	get_data = request.GET
+	
+	try:
+		stationCode = get_data['stationCode']
 		# YYYY/MM/DD
 
-		tz = pytz.timezone('Brazil/East')
-		hoy = dt.datetime.now(tz)
-		ini_date = hoy - relativedelta(months=7)
+		timezone = pytz.timezone('Brazil/East')
+		currentDate = dt.datetime.now(timezone)
+		startDate = currentDate - relativedelta(months=7)
 
-		anyo = hoy.year
-		mes = hoy.month
-		dia = hoy.day
+		year = currentDate.year
+		month = currentDate.month
+		day = currentDate.day
 
-		if dia < 10:
-			DD = '0' + str(dia)
+		if day < 10:
+			DD = '0' + str(day)
 		else:
-			DD = str(dia)
+			DD = str(day)
 
-		if mes < 10:
-			MM = '0' + str(mes)
+		if month < 10:
+			MM = '0' + str(month)
 		else:
-			MM = str(mes)
+			MM = str(month)
 
-		YYYY = str(anyo)
+		YYYY = str(year)
 
-		ini_anyo = ini_date.year
-		ini_mes = ini_date.month
-		ini_dia = ini_date.day
+		startYear = startDate.year
+		startMonth = startDate.month
+		startDay = startDate.day
 
-		if ini_dia < 10:
-			ini_DD = '0' + str(ini_dia)
+		if startDay < 10:
+			ini_DD = '0' + str(startDay)
 		else:
-			ini_DD = str(ini_dia)
+			ini_DD = str(startDay)
 
-		if ini_mes < 10:
-			ini_MM = '0' + str(ini_mes)
+		if startMonth < 10:
+			ini_MM = '0' + str(startMonth)
 		else:
-			ini_MM = str(ini_mes)
+			ini_MM = str(startMonth)
 
-		ini_YYYY = str(ini_anyo)
+		ini_YYYY = str(startYear)
 
 		url = 'http://telemetriaws1.ana.gov.br/ServiceANA.asmx/DadosHidrometeorologicos?codEstacao={0}&DataInicio={1}/{2}/{3}&DataFim={4}/{5}/{6}'.format(
-			codEstacion, ini_DD, ini_MM, ini_YYYY, DD, MM, YYYY)
-		datos = requests.get(url).content
-		sites_dict = xmltodict.parse(datos)
+			stationCode, ini_DD, ini_MM, ini_YYYY, DD, MM, YYYY)
+		data = requests.get(url).content
+		sites_dict = xmltodict.parse(data)
 		sites_json_object = json.dumps(sites_dict)
 		sites_json = json.loads(sites_json_object)
 
-		list_val_nivel = []
-		list_date_nivel = []
+		water_level_values = []
+		water_level_dates = []
 
-		datos_c = sites_json["DataTable"]["diffgr:diffgram"]["DocumentElement"]["DadosHidrometereologicos"]
+		hidro_data = sites_json["DataTable"]["diffgr:diffgram"]["DocumentElement"]["DadosHidrometereologicos"]
 
-		for dat in datos_c:
-			list_val_nivel.append(dat["Nivel"])
-			list_date_nivel.append(dat["DataHora"])
+		for dat in hidro_data:
+			water_level_values.append(dat["Nivel"])
+			water_level_dates.append(dat["DataHora"])
 
-		pairs = [list(a) for a in zip(list_date_nivel, list_val_nivel)]
+		pairs = [list(a) for a in zip(water_level_dates, water_level_values)]
 		waterLevel_df = pd.DataFrame(pairs, columns=['Datetime', 'Water Level (m)'])
 		waterLevel_df.set_index('Datetime', inplace=True)
 		waterLevel_df.index = pd.to_datetime(waterLevel_df.index)
@@ -1279,6 +1331,7 @@ def get_waterlevel_data(request):
 		context = {
 			'gizmo_object': chart_obj,
 		}
+		# print(context)
 
 		return render(request, '{0}/gizmo_ajax.html'.format(base_name), context)
 
@@ -1367,6 +1420,61 @@ def get_observed_waterlevel_csv(request):
 		print(str(e))
 		return JsonResponse({'error': 'An unknown error occurred while retrieving the Water Level Data.'})
 
+@controller(name='get-historical-observed-waterlevel-csv', url='get-historical-observed-waterlevel-csv')
+def get_historical_observed_waterlevel_csv(request):
+	get_data = request.GET
+
+	try:
+		stationCode = get_data['stationcode']
+		stationName = get_data['stationname']
+		
+		client = MongoClient(MONGODB_URI)
+        
+		database = client["hydroviewer"]
+
+		collection = database["stations"]
+
+		get_data = request.GET
+        
+		cursor = list(collection.find({"_id": stationCode}))
+        
+		if stationCode:
+			record = collection.find_one({"_id": stationCode})
+            
+			if record and len(cursor) > 0:
+				water_level_values = record["QGlofas"]
+				water_level_dates = record["Date"]
+
+				pairs = [list(a) for a in zip(water_level_dates, water_level_values)]
+				waterLevel_df = pd.DataFrame(pairs, columns=['Datetime', 'Water Level (m)'])
+				waterLevel_df.set_index('Datetime', inplace=True)
+				waterLevel_df.index = pd.to_datetime(waterLevel_df.index)
+				waterLevel_df.dropna(inplace=True)
+
+				response = HttpResponse(content_type='text/csv')
+				response['Content-Disposition'] = 'attachment; filename=observed_water_level_{0}_{1}.csv'.format(stationCode, stationName)
+
+				waterLevel_df.to_csv(encoding='utf-8', header=True, path_or_buf=response)
+
+				return response
+
+			else:
+				return HttpResponse("No data found for the provided station code.")
+		else:
+			return HttpResponse("Please provide a valid station code.")
+
+	except Exception as e:
+		print(str(e))
+		return JsonResponse({'error': 'An unknown error occurred while retrieving the Discharge Data.'})
+
+	except pymongo.errors.PyMongoError as e:
+        # Tratar exceção do MongoDB, se necessário
+		return HttpResponse(f"An error occurred: {e}")
+    
+	finally:
+        # Fechar a conexão com o MongoDB
+		client.close()
+
 def probabilities(points, watershed, workspace_path):
 	if not cache_enabled:
 		return []
@@ -1436,3 +1544,107 @@ def probabilities(points, watershed, workspace_path):
 		results = executor.map(handle, points)
 
 	return list(results)
+
+####################################################################################################
+##                                           mongoDB                                              ##
+####################################################################################################
+
+# Return station in geojson format 
+@controller(name='get_station', url='get-station')
+def get_station(request):
+    try:
+        client = MongoClient(MONGODB_URI)
+        
+        database = client["hydroviewer"]
+
+        collection = database["stations"]
+
+        get_data = request.GET
+        
+        stationCode = get_data.get('stationCode')
+        
+        cursor = list(collection.find({"_id": stationCode}))
+        
+        if stationCode:
+            record = collection.find_one({"_id": stationCode})
+            
+            if record and len(cursor) > 0:
+                return JsonResponse({"station": record})
+            else:
+                return HttpResponse("No data found for the provided station code.")
+        else:
+            return HttpResponse("Please provide a valid station code.")
+
+    except pymongo.errors.PyMongoError as e:
+        return HttpResponse(f"An error occurred: {e}")
+    
+    finally:
+        client.close()
+        
+# Return all stations in geojson format 
+@controller(name='get_all_stations', url='get-all-stations')
+def get_all_stations(_):
+    try:
+        # Conectar ao servidor MongoDB (pode ser necessário ajustar a URL e a porta)
+        client = MongoClient(MONGODB_URI)
+        # Selecionar a base de dados
+        database = client["hydroviewer"]
+
+        # Selecionar a coleção
+        collection = database["stations"]
+
+        items = list(collection.find())
+        
+        def mapItem(item):
+            return {
+                "id": item["_id"],
+                "name": item["Name"],
+                "lat": item["Lat"],
+                "lon": item["Lon"]
+            }
+            
+        parsedItems = list(map(mapItem, items))
+        
+        return JsonResponse({"stations": parsedItems})
+    
+    except pymongo.errors.PyMongoError as e:
+        return HttpResponse(f"An error occurred: {e}")
+    
+    finally:
+        client.close()
+        
+# Return all streams in geojson format 
+@controller(name='get_all_streams', url='get-all-streams')
+def get_all_streams(_):
+    try:
+        client = MongoClient(MONGODB_URI)
+        
+        database = client["hydroviewer"]
+
+        collection = database["streams"]
+        
+        items = list(collection.find())
+        
+        def mapItem(item):
+            return {
+                "type": "Feature",
+                "geometry": item["geometry"],
+                "properties": {}
+            }
+            
+        parsedItems = list(map(mapItem, items))
+        
+        # print(parsedItems[0])
+        
+        return JsonResponse({
+            "streams": {
+				"type": "FeatureCollection",
+  				"features": parsedItems
+			}
+        })
+    
+    except pymongo.errors.PyMongoError as e:
+        return HttpResponse(f"An error occurred: {e}")
+    
+    finally:
+        client.close()

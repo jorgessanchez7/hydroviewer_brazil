@@ -955,8 +955,7 @@ function buildStationsLayer() {
         wmsStationsLayer.addLayer(feature)
     })
 }
-
-function buildStationIcon({ width = 15, height = 20, fillColor = '#ff5c62', borderColor = '#000' }) {
+function buildStationIcon({ width = 10, height = 15, fillColor = '#45818e', borderColor = '#000' }) {
     const stationPinSVG = `<svg 
         width="${width}"
         height="${height}" 

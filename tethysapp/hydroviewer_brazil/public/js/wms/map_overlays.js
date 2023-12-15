@@ -900,9 +900,16 @@ function buildStreamsLayer() {
         zIndex = streamsPane.style.zIndex
     }
 
+    const streamStyle = {
+        color: '#3388ff', 
+        weight: 2,        
+        opacity: 0.7     
+    };
+
     wmsStreamsLayer = L.geoJSON(streamsData, {
         pane: STREAMS,
         zIndex: zIndex,
+        style: streamStyle,
     }).addTo(map).on('click', (event) => {
         buildForecastModal(event)
     });

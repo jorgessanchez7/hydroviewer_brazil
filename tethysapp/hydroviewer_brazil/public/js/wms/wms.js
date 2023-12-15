@@ -224,7 +224,7 @@ function registerCallbacks() {
 
         var model = 'ECMWF-RAPID';
 
-        loadingComponent.removeClass('hidden');
+        // loadingComponent.removeClass('hidden');
         getTimeSeries(model, watershed, subbasin, comid, startdate);
     });
 
@@ -643,6 +643,7 @@ function getTimeSeries(model, watershed, subbasin, comid, startdate) {
     loadingComponent.removeClass('hidden');
     $('#long-term-chart').addClass('hidden');
     $('#dates').addClass('hidden');
+
     $.ajax({
         type: 'GET',
         url: 'get-time-series/',
@@ -664,7 +665,7 @@ function getTimeSeries(model, watershed, subbasin, comid, startdate) {
         success: function (data) {
             if (!data.error) {
                 $('#dates').removeClass('hidden');
-                loadingComponent.addClass('hidden');
+                // loadingComponent.addClass('hidden');
                 $('#long-term-chart').removeClass('hidden');
                 $('#long-term-chart').html(data);
 
@@ -672,6 +673,7 @@ function getTimeSeries(model, watershed, subbasin, comid, startdate) {
                 Plotly.Plots.resize($("#long-term-chart .js-plotly-plot")[0]);
 
                 getForecastPercent(watershed, subbasin, comid, startdate);
+                loadingComponent.addClass('hidden');
 
                 var params = {
                     watershed_name: watershed,
@@ -846,8 +848,7 @@ function getMonthlySeasonalStreamflow(model, watershed, subbasin, comid, startda
 };
 
 function getForecastPercent(watershed, subbasin, comid, startdate) {
-    //loadingComponent.removeClass('hidden');
-    // $("#forecast-table").addClass('hidden');
+    loadingComponent.removeClass('hidden');
     $.ajax({
         type: 'GET',
         url: 'forecastpercent/',
@@ -888,9 +889,7 @@ function getForecastPercent(watershed, subbasin, comid, startdate) {
     });
 }
 
-function get_forecast_percent(watershed, subbasin, comid, startdate) {
-    //$loading.removeClass('hidden');
-    // $("#forecast-table").addClass('hidden');
+function get_forecast_percent(watershed, subbasin, comid, startdate) {;
     loadingComponent.removeClass('hidden');
     $.ajax({
         type: 'GET',

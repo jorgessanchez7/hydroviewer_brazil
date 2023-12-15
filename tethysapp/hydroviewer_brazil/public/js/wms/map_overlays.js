@@ -1261,8 +1261,9 @@ function buildForecastModal(event) {
     $('#seasonal_m-chart').addClass('hidden');
     $('#download_forecast').addClass('hidden');
     $('#download_era_5').addClass('hidden');
-    loadingComponent.removeClass('hidden');
     $('#dates').addClass('hidden');
+    loadingComponent.removeClass('hidden');
+
 
     let wms_url;
 
@@ -1285,7 +1286,6 @@ function buildForecastModal(event) {
         var workspace = JSON.parse($('#geoserver_endpoint').val())[1];
 
         $('#info').addClass('hidden');
-        loadingComponent.addClass('hidden');
 
         addFeature(model, workspace, comid);
     };
@@ -1298,6 +1298,12 @@ function buildForecastModal(event) {
         url: wms_url,
         dataType: 'json',
         success: function (result) {
+            if (!result.features || result.features.length === 0 || !result.features[0]) {
+                $("#graph").modal('hide');
+                $("#zoomErrorModal").modal('show');
+                return;
+            }
+
             comid = result["features"][0]["properties"]["COMID"];
 
             if ("derived_fr" in (result["features"][0]["properties"])) {
@@ -1319,6 +1325,10 @@ function buildForecastModal(event) {
             console.log(errorThrown);
         }
     });
+$("#zoomErrorModal").on('hidden.bs.modal', function () {
+    $("#graph").modal('hide');
+});
+
 }
 
 function buildWarningModal(event) {

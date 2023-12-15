@@ -33,7 +33,7 @@ function buildForecast() {
     const points = {
         [STREAMS]: {
             icon: '<svg width="24" height="24" viewPort="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg"><polyline points="19 1, 1 6, 19 14, 1 19" stroke="#0000FF" fill="transparent" stroke-width="2"/></svg>',
-            name: "Streams warning points",
+            name: "Streams",
             layer: wmsStreamsGroupLayer,
             layerId: OBSERVED_LAYERS_FORECAST,
             isOn: false,
@@ -41,7 +41,7 @@ function buildForecast() {
         [STATIONS]: {
             // TODO: this probably needs changing
             icon: '<svg width="24" height="24" viewPort="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg"><polyline points="0 10, 0 0, 10 0, 10 10, 0 10" stroke="rgba(255,0,0,1)" fill="rgba(255,0,0,1)" stroke-width="2"/></svg>',
-            name: "Stations warning points",
+            name: "Stations",
             layer: wmsStationsGroupLayer,
             layerId: OBSERVED_LAYERS_FORECAST,
             isOn: false,

@@ -51,6 +51,8 @@ cache_enabled = True
 # Import enviromental variables 
 load_dotenv()
 MONGODB_URI = os.getenv('MONGODB_URI')
+client = MongoClient(MONGODB_URI)
+
 
 @controller(name='home', url=base_url)
 def home(request):
@@ -1193,7 +1195,7 @@ def get_historical_observed_discharge_csv(request):
 		stationCode = get_data['stationcode']
 		stationName = get_data['stationname']
 		
-		client = MongoClient(MONGODB_URI)
+		# client = MongoClient(MONGODB_URI)
         
 		database = client["hydroviewer"]
 
@@ -1235,10 +1237,6 @@ def get_historical_observed_discharge_csv(request):
 	except pymongo.errors.PyMongoError as e:
         # Tratar exceção do MongoDB, se necessário
 		return HttpResponse(f"An error occurred: {e}")
-    
-	finally:
-        # Fechar a conexão com o MongoDB
-		client.close()
 
 @controller(name='get-waterlevel-data', url='get-waterlevel-data')
 def get_waterlevel_data(request):
@@ -1428,7 +1426,7 @@ def get_historical_observed_waterlevel_csv(request):
 		stationCode = get_data['stationcode']
 		stationName = get_data['stationname']
 		
-		client = MongoClient(MONGODB_URI)
+		# client = MongoClient(MONGODB_URI)
         
 		database = client["hydroviewer"]
 
@@ -1470,10 +1468,6 @@ def get_historical_observed_waterlevel_csv(request):
 	except pymongo.errors.PyMongoError as e:
         # Tratar exceção do MongoDB, se necessário
 		return HttpResponse(f"An error occurred: {e}")
-    
-	finally:
-        # Fechar a conexão com o MongoDB
-		client.close()
 
 def probabilities(points, watershed, workspace_path):
 	if not cache_enabled:
@@ -1552,41 +1546,30 @@ def probabilities(points, watershed, workspace_path):
 # Return station in geojson format 
 @controller(name='get_station', url='get-station')
 def get_station(request):
-    try:
-        client = MongoClient(MONGODB_URI)
-        
-        database = client["hydroviewer"]
+	try:
+		database = client["hydroviewer"]
+		collection = database["stations"]
 
-        collection = database["stations"]
+		stationCode = request.GET.get('stationCode')
 
-        get_data = request.GET
-        
-        stationCode = get_data.get('stationCode')
-        
-        cursor = list(collection.find({"_id": stationCode}))
-        
-        if stationCode:
-            record = collection.find_one({"_id": stationCode})
-            
-            if record and len(cursor) > 0:
-                return JsonResponse({"station": record})
-            else:
-                return HttpResponse("No data found for the provided station code.")
-        else:
-            return HttpResponse("Please provide a valid station code.")
+		if stationCode:
+			record = collection.find_one({"_id": stationCode})
+			if record:
+				return JsonResponse({"station": record})
+			else:
+				return HttpResponse("No data found for the provided station code.", status=404)
+		else:
+			return HttpResponse("Please provide a valid station code.", status=400)
 
-    except pymongo.errors.PyMongoError as e:
-        return HttpResponse(f"An error occurred: {e}")
-    
-    finally:
-        client.close()
+	except Exception as e:
+		return HttpResponse(f"An error occurred: {e}", status=500)
         
 # Return all stations in geojson format 
 @controller(name='get_all_stations', url='get-all-stations')
 def get_all_stations(_):
     try:
         # Conectar ao servidor MongoDB (pode ser necessário ajustar a URL e a porta)
-        client = MongoClient(MONGODB_URI)
+        # client = MongoClient(MONGODB_URI)
         # Selecionar a base de dados
         database = client["hydroviewer"]
 
@@ -1610,14 +1593,14 @@ def get_all_stations(_):
     except pymongo.errors.PyMongoError as e:
         return HttpResponse(f"An error occurred: {e}")
     
-    finally:
-        client.close()
+    # finally:
+    #     client.close()
         
 # Return all streams in geojson format 
 @controller(name='get_all_streams', url='get-all-streams')
 def get_all_streams(_):
     try:
-        client = MongoClient(MONGODB_URI)
+        # client = MongoClient(MONGODB_URI)
         
         database = client["hydroviewer"]
 
@@ -1629,8 +1612,8 @@ def get_all_streams(_):
             return {
                 "type": "Feature",
                 "geometry": item["geometry"],
-                "properties": {}
-            }
+				"properties": {}
+			}
             
         parsedItems = list(map(mapItem, items))
         
@@ -1645,6 +1628,3 @@ def get_all_streams(_):
     
     except pymongo.errors.PyMongoError as e:
         return HttpResponse(f"An error occurred: {e}")
-    
-    finally:
-        client.close()

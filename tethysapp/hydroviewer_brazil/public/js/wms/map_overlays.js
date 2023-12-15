@@ -33,7 +33,7 @@ function buildForecast() {
     const points = {
         [STREAMS]: {
             icon: '<svg width="24" height="24" viewPort="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg"><polyline points="19 1, 1 6, 19 14, 1 19" stroke="#0000FF" fill="transparent" stroke-width="2"/></svg>',
-            name: "Streams",
+            name: "Streams warning points",
             layer: wmsStreamsGroupLayer,
             layerId: OBSERVED_LAYERS_FORECAST,
             isOn: false,
@@ -41,7 +41,7 @@ function buildForecast() {
         [STATIONS]: {
             // TODO: this probably needs changing
             icon: '<svg width="24" height="24" viewPort="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg"><polyline points="0 10, 0 0, 10 0, 10 10, 0 10" stroke="rgba(255,0,0,1)" fill="rgba(255,0,0,1)" stroke-width="2"/></svg>',
-            name: "Stations",
+            name: "Stations warning points",
             layer: wmsStationsGroupLayer,
             layerId: OBSERVED_LAYERS_FORECAST,
             isOn: false,
@@ -874,14 +874,14 @@ function buildWarningPointsLayer(points, layer, period) {
     for (let i = 0; i < points.length; ++i) {
         const flow = points[i][4]
         const coord = [points[i][1], points[i][2]]
-
+        const comid = points[i][3]
         const feature = L.shapeMarker(coord,
             {
                 shape: flow === "same" ? "circle" : `triangle-${flow}`,
                 pane: WARNINGS,
-                radius: 4
+                id: comid,
             }).on('click', (event) => {
-                buildForecastModal(event);
+                 buildWarningModal(event);
             });
 
         layer.addLayer(feature)
@@ -900,23 +900,11 @@ function buildStreamsLayer() {
         zIndex = streamsPane.style.zIndex
     }
 
-    // wmsStreamsLayer = L.geoJSON(streamsData, {
-    //     pane: STREAMS,
-    //     zIndex: zIndex,
-        
-    // }).addTo(map).on('click', (event) => {
-    //     buildForecastModal(event)
-    // });
     wmsStreamsLayer = L.geoJSON(streamsData, {
         pane: STREAMS,
         zIndex: zIndex,
-        style: function (feature) {
-            return {
-                weight: 1 
-            };
-        }
     }).addTo(map).on('click', (event) => {
-        buildForecastModal(event);
+        buildForecastModal(event)
     });
 
     map.addLayer(wmsStreamsLayer);
@@ -961,7 +949,7 @@ function buildStationsLayer() {
     })
 }
 
-function buildStationIcon({ width = 10, height = 15, fillColor = '#45818e', borderColor = '#000' }) {
+function buildStationIcon({ width = 15, height = 20, fillColor = '#ff5c62', borderColor = '#000' }) {
     const stationPinSVG = `<svg 
         width="${width}"
         height="${height}" 
@@ -1203,9 +1191,8 @@ function buildStationModal(json) {
     const popupContent = `<div class="station-popup">
         <p><b>Name</b>: ${json.station.Name}</p>
         <p><b>Comid</b>: ${json.station._id}</p>
-        <p><b>River</b>: ${json.station.NomeRio}</p>
-        <p><b>Lat</b>: ${json.station.Lat}</p>
-        <p><b>Lon</b>: ${json.station.Lon}</p>
+        <p><b>Latitude</b>: ${json.station.Lat}</p>
+        <p><b>Longitude</b>: ${json.station.Lon}</p>
         <br />
         <button id="station-popup-view-data">Visualize the data</button>
     </div>`
@@ -1216,52 +1203,51 @@ function buildStationModal(json) {
         .setContent(popupContent)
         .openOn(map);
 
-    function handleStationViewData(station) {
-        popup.close();
-    
-        $("#obsgraph").modal('show');
-    
-        $("#station-info").empty();
-    
-        $("#station-info").append(`<h5>Current Station: ${station.Name}</h5>`);
-        
-        const firstRow = document.createElement('div');
-        firstRow.style.display = 'flex';
-        
-        const firstColumn1 = document.createElement('div');
-        firstColumn1.style.flex = '50%';
-        firstColumn1.innerHTML = `<p><b>River</b>: ${json.station.NomeRio}</p>`;
-        
-        const firstColumn2 = document.createElement('div');
-        firstColumn2.style.flex = '50%';
-        firstColumn2.innerHTML = `<p><b>Latitude</b>: ${json.station.Lat}</p>`;
-        
-        firstRow.appendChild(firstColumn1);
-        firstRow.appendChild(firstColumn2);
-        
-        document.getElementById('station-info').appendChild(firstRow);
-        
-        const secondRow = document.createElement('div');
-        secondRow.style.display = 'flex';
-        
-        const secondColumn1 = document.createElement('div');
-        secondColumn1.style.flex = '50%';
-        secondColumn1.innerHTML = `<p><b>Comid</b>: ${json.station._id}</p>`;
 
-        const secondColumn2 = document.createElement('div');
-        secondColumn2.style.flex = '50%';
-        secondColumn2.innerHTML = `<p><b>Longitude</b>: ${json.station.Lon}</p>`;
-        
-        secondRow.appendChild(secondColumn1);
-        secondRow.appendChild(secondColumn2);
-        
-        document.getElementById('station-info').appendChild(secondRow);
-        
-        buildStationChart(station);
+    function handleStationViewData(station) {
+        popup.close()
+
+        $("#obsgraph").modal('show');
+
+        $("#station-info").empty();
+
+        $("#station-info").append(`<h5>Current Station: ${station.Name}</h5>`);
+        $("#station-info").append(`<p><b>Latitude</b>: ${json.station.Lat}</p>`);
+        $("#station-info").append(`<p><b>Longitude</b>: ${json.station.Lon}</p>`);
+        $("#station-info").append(`<p><b>Comid</b>: ${json.station._id}</p>`);
+
+        buildStationChart(station)
     }
-    
 
     document.getElementById("station-popup-view-data").onclick = () => handleStationViewData(json.station);
+}
+
+function constructWMSGetFeatureInfoUrl(latlng, map) {
+    const url = new URL(JSON.parse($('#geoserver_endpoint').val())[0].replace(/\/$/, "") + 'wms');
+    const layerName = watershedLayerName()
+    var crs = map.options.crs;
+    var size = map.getSize();
+    var bounds = map.getBounds();
+    var nw = crs.project(bounds.getNorthWest());
+    var se = crs.project(bounds.getSouthEast());
+    var pixelPoint = map.latLngToContainerPoint(latlng);
+    // The parameters for the WMS GetFeatureInfo request
+    url.searchParams.append('SERVICE', 'WMS');
+    url.searchParams.append('VERSION', '1.3.0');
+    url.searchParams.append('REQUEST', 'GetFeatureInfo');
+    url.searchParams.append('FORMAT', 'image/png');
+    url.searchParams.append('TRANSPARENT', 'true');
+    url.searchParams.append('QUERY_LAYERS',  watershedLayerName());
+    url.searchParams.append('LAYERS',  watershedLayerName());
+    url.searchParams.append('INFO_FORMAT', 'application/json');
+    url.searchParams.append('I', Math.round(pixelPoint.x));
+    url.searchParams.append('J', Math.round(pixelPoint.y));
+    url.searchParams.append('CRS', crs.code);
+    url.searchParams.append('WIDTH', size.x);
+    url.searchParams.append('HEIGHT', size.y);
+    url.searchParams.append('BBOX', [nw.x, se.y, se.x, nw.y].join(','));
+
+    return url.href;
 }
 
 function buildForecastModal(event) {
@@ -1280,32 +1266,9 @@ function buildForecastModal(event) {
 
     let wms_url;
 
-    const coordinates = [event.latlng.lat, event.latlng.lng]
-    const bbox = getForViewAndSize(coordinates, 0, [101, 101]);
-    const x = Math.floor(coordinates[0] - bbox[0]);
-    const y = Math.floor(bbox[3] - coordinates[1]);
+    url = constructWMSGetFeatureInfoUrl(event.latlng, map);
 
-    const layerName = watershedLayerName()
-
-    const url = new URL(JSON.parse($('#geoserver_endpoint').val())[0].replace(/\/$/, "") + 'wms');
-    url.searchParams.append('SERVICE', 'WMS');
-    url.searchParams.append('VERSION', '1.3.0');
-    url.searchParams.append('REQUEST', 'GetFeatureInfo');
-    url.searchParams.append('FORMAT', 'image/png');
-    url.searchParams.append('TRANSPARENT', 'true');
-    url.searchParams.append('QUERY_LAYERS', layerName);
-    url.searchParams.append('LAYERS', layerName);
-    url.searchParams.append('INFO_FORMAT', 'application/json');
-    url.searchParams.append('I', x);
-    url.searchParams.append('J', y);
-    url.searchParams.append('CRS', 'EPSG:3857');
-    url.searchParams.append('WIDTH', 101);
-    url.searchParams.append('HEIGHT', 101);
-    // TODO: move to real BBOX
-    url.searchParams.append('BBOX', '-6616913.186658766,-715992.7492342948,-5628735.284988008,272185.15243646386');
-    // url.searchParams.append('BBOX', bbox.join(','));
-
-    wms_url = url.href;
+    wms_url = url;
 
     console.log("<debug> wms_url: ", wms_url);
 
@@ -1322,6 +1285,8 @@ function buildForecastModal(event) {
         var workspace = JSON.parse($('#geoserver_endpoint').val())[1];
 
         $('#info').addClass('hidden');
+        loadingComponent.addClass('hidden');
+
         addFeature(model, workspace, comid);
     };
 
@@ -1354,4 +1319,33 @@ function buildForecastModal(event) {
             console.log(errorThrown);
         }
     });
+}
+
+function buildWarningModal(event) {
+    var model = $('#model option:selected').text();
+
+    $("#graph").modal('show');
+    $("#tbody").empty();
+    $('#long-term-chart').addClass('hidden');
+    $("#forecast-table").addClass('hidden');
+    $('#historical-chart').addClass('hidden');
+    $('#fdc-chart').addClass('hidden');
+    $('#seasonal_d-chart').addClass('hidden');
+    $('#seasonal_m-chart').addClass('hidden');
+    $('#download_forecast').addClass('hidden');
+    $('#download_era_5').addClass('hidden');
+    $('#dates').addClass('hidden');
+
+    // const model = 'ECMWF-RAPID'
+    const watershed = 'south_america';
+    const subbasin = 'geoglows';
+    const comid = event.target.options.id;
+    const startdate = '';
+
+    get_forecast_percent(watershed, subbasin, comid, startdate);
+    getAvailableDates(model, watershed, subbasin, comid);
+    get_requestData (model, watershed, subbasin, comid, startdate);
+    $('#info').addClass('hidden');
+    // loadingComponent.addClass('hidden');
+
 }
